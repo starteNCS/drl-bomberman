@@ -29,6 +29,7 @@ Student project to train and compete Reinforcement Learning Agents in a Bomberma
 2. Create conda env:
    ```bash
    conda env create --name <name> -f environment.yml
+   conda activate <name>
    ```
    This will implicitly install this package as dependency in editable mode.
 
