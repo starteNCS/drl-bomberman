@@ -1,6 +1,8 @@
 # Custom
-**/logs/
-**/replays/
+**/logs/*
+!**/logs/.gitkeep
+**/replays/*
+!**/replays/.gitkeep
 **/.vscode/
 
 # Byte-compiled / optimized / DLL files
