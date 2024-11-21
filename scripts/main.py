@@ -6,18 +6,12 @@ from gymnasium.wrappers import RecordVideo
 
 from bomberman_rl import settings as s, Actions, Bomberman
 
-from random_agent.agent import Agent as RandomAgent
+from random_agent.agent import RandomAgent
 
 
 def parse(argv=None):
-    parser = ArgParser(
-        default_config_files=[
-            #    os.path.dirname(os.path.abspath(__file__)) + "/config.ini"
-        ]
-    )
+    parser = ArgParser(default_config_files=[])
 
-    # Play arguments
-    # parser.add("-c", "--my-config", is_config_file=True, help="config file path")
     parser.add(
         "--seed",
         type=int,
@@ -69,44 +63,6 @@ def parse(argv=None):
     )
     parser.add("--scenario", default="classic", choices=s.SCENARIOS)
 
-    # TODO
-    # parser.add(
-    #     "--save-stats",
-    #     const=True,
-    #     default=False,
-    #     action="store",
-    #     nargs="?",
-    #     help="Store the game results as .json for evaluation",
-    # )
-    # parser.add("--multi-process", default=False, action="store_true")
-    # -----------------
-    #
-    # Compete arguments
-    #
-    # agent_group = compete_parser.add_mutually_exclusive_group()
-    # agent_group.add(
-    #     "--my-agent",
-    #     type=str,
-    #     help="Compete agent of name ... against three rule_based_agents",
-    # )
-    # agent_group.add(
-    #     "--agents",
-    #     type=str,
-    #     nargs="+",
-    #     default=["rule_based_agent"] * 4,
-    #     help="Compete these agents",
-    # )
-    # compete_parser.add(
-    #     "--train",
-    #     default=0,
-    #     type=int,
-    #     choices=[0, 1, 2, 3, 4],
-    #     help="First … agents should be set to training mode",
-    # )
-    # compete_parser.add_argument(
-    #     "--n-rounds", type=int, default=10, help="How many rounds to play"
-    # )
-
     args = parser.parse_args(argv)
     if args.video:
         args.render_mode = "rgb_array"
@@ -126,7 +82,7 @@ def loop(env, agent, args):
         if args.user_play:
             action, quit = env.unwrapped.get_user_action()
             while action is None and not quit:
-                time.sleep(0.5) # wait until user closes GUI
+                time.sleep(0.5)  # wait until user closes GUI
                 action, quit = env.unwrapped.get_user_action()
         else:
             action, quit = agent.act(state), env.unwrapped.get_user_quit()
@@ -155,12 +111,11 @@ def loop(env, agent, args):
 
 def main(argv=None):
     args = parse(argv)
-    env = gymnasium.make('bomberman_rl/bomberman-v0', args=args)
-    # env = Bomberman(args=args)
+    env = gymnasium.make("bomberman_rl/bomberman-v0", args=args)
     if args.video:
         env = RecordVideo(env, video_folder=args.video, name_prefix=args.match_name)
 
-    # Agent setup    
+    # Agent setup
     agent = RandomAgent()
     agent.setup()
     if args.train:

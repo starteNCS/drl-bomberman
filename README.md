@@ -53,15 +53,61 @@ Student project to train and compete Reinforcement Learning Agents in a Bomberma
    python scripts/main.py -h
    ```
 
-### Develop
+## Develop
 This package provides
 - `src/`: bomberman *Environment* as Gymnasium environment
 - `scripts/`: example *Agent* acting on the environment
 
-#### Environment
-- Beware: Gymnasium interface not yet fully implemented!
-- tbc
+### Environment
+- Action space:
+```python
+class Actions(Enum):
+    UP = 0
+    RIGHT = 1
+    DOWN = 2
+    LEFT = 3
+    WAIT = 4
+    BOMB = 5
+```
+- Observation space:
+```python
+{
+    'round': int,
+    'step': int,
+    'walls': np.array((17, 17), dtype=int16),
+    'crates': np.array((17, 17), dtype=int16),
+    'bombs': np.array((17, 17), dtype=int16),
+    'explosions': np.array((17, 17), dtype=int16),
+    'self_pos': np.array((17, 17), dtype=int16),
+    'opponents_pos': np.array((17, 17), dtype=int16),
+    'self_info': {
+        'score': int,
+        'bombs_left': int,
+        'position': np.array((17, 17), dtype=int16)
+    }
+    'opponents_info': ({...}, {...}, {...})
+}
+```
 
-#### Agent
-- While you can arbitrarily adapt agent and training loop, you might wanna **stick roughly to the interface** of the example Random Agent as this allows for later competition amongst students
-<img src="./docs/resources/agent.png" alt="Bomberman" width="600"/>
+### Agent
+- We are talking **Rule Based** for now
+    - you might stumble upon learning related code, though
+- You can adapt agent and action loop, but you might wanna **stick to the interface**
+    - this allows for later competition
+    - see the `RuleBasedAgent` in `scripts/agent.py`
+    - see the example implementation of a random agent in `scripts/random_agent/agent.py`
+
+```python
+class RandomAgent:
+    def __init__(self):
+        self.setup()
+
+    def setup(self):
+        self.rng = np.random.default_rng()
+
+    def act(self, state: dict) -> int:
+        action = Actions.BOMB.value
+        while action == Actions.BOMB.value:
+            action = np.argmax(self.rng.random(len(Actions)))
+        return action
+```
