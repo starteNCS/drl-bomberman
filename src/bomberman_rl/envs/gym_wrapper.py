@@ -68,7 +68,7 @@ class BombermanEnvWrapper(gym.Env):
             return MultiDiscrete(np.ones((s.COLS, s.ROWS)) * n)
     
     def _init_observation_space(self):
-        SInt = Discrete(2 ** 30)
+        SInt = Discrete(2 ** 20)
         SWalls = self._multi_discrete_space()
         SCrates = self._multi_discrete_space()
         SCoins = self._multi_discrete_space()
@@ -77,9 +77,8 @@ class BombermanEnvWrapper(gym.Env):
         SAgentPos = self._multi_discrete_space()
         SOpponentsPos = self._multi_discrete_space()
         SAgent = Dict({
-            "name": Text(2 ** 7),
             "score": SInt,
-            "bombs_left": Discrete(1),
+            "bombs_left": Discrete(2),
             "position": self._multi_discrete_space()
         })
         SOpponents = Sequence(SAgent)
@@ -102,9 +101,8 @@ class BombermanEnvWrapper(gym.Env):
 
         def _agent_delegate2gym(agent, pos):
             return {
-                "name": agent[0],
                 "score": agent[1],
-                "bombs_left": not (agent[2] == 0),
+                "bombs_left": int(agent[2]),
                 "position": pos
             }
         
@@ -135,7 +133,13 @@ class BombermanEnvWrapper(gym.Env):
             opponents_pos[*zip(*positions)] = 1
 
         self_info = _agent_delegate2gym(state["self"], self_pos)
-        opponents_info = [_agent_delegate2gym(agent, pos) for agent, pos in zip(state["others"], opponents_pos)]
+        
+        single_opponents_pos = []
+        for _, _, _, pos in state["others"]:
+            single_opponent_pos = np.zeros(state["field"].shape, dtype="int16")
+            single_opponent_pos[*pos] = 1
+            single_opponents_pos.append(single_opponent_pos)
+        opponents_info = tuple([_agent_delegate2gym(agent, pos) for agent, pos in zip(state["others"], single_opponents_pos)])
 
         return {
             "round": state["round"],
