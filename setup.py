@@ -14,7 +14,7 @@ setup(
     author="N.",
     packages=find_packages(where="src"),
     package_dir={"": "src"},
-    install_requires=read_requirements("requirements.txt"),
+    install_requires=[],
     extras_require={
     },
     python_requires=">=3.8",

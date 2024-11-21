@@ -59,12 +59,12 @@ def parse(argv=None):
         help="Call the agent's training endpoints",
     )
     parser.add(
-        "--log-dir", default=os.path.dirname(os.path.abspath(__file__)) + "/../logs"
+        "--log-dir", default=os.path.dirname(os.path.abspath(__file__)) + "/logs"
     )
     parser.add(
         "--video",
         nargs="?",
-        const=os.path.dirname(os.path.abspath(__file__)) + "/../replays",
+        const=os.path.dirname(os.path.abspath(__file__)) + "/replays",
         help="Record the session",
     )
     parser.add("--scenario", default="classic", choices=s.SCENARIOS)
