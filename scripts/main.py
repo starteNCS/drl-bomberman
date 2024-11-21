@@ -155,8 +155,8 @@ def loop(env, agent, args):
 
 def main(argv=None):
     args = parse(argv)
-    #env = gymnasium.make('bomberman_rl/bomberman-v0', args=args) # TODO env wrapper needs observation space
-    env = Bomberman(args=args)
+    env = gymnasium.make('bomberman_rl/bomberman-v0', args=args)
+    # env = Bomberman(args=args)
     if args.video:
         env = RecordVideo(env, video_folder=args.video, name_prefix=args.match_name)
 
