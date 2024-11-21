@@ -28,7 +28,10 @@ class Agent:
 
         :param state: The state of the environment.
         """
-        return np.argmax(self.rng.random(len(Actions)))
+        action = Actions.BOMB.value
+        while action == Actions.BOMB.value:
+            action = np.argmax(self.rng.random(len(Actions))) # do not choose what they cannot control
+        return action
     
 
     def game_events_occurred(
