@@ -128,7 +128,7 @@ def act(self, game_state):
     for d in directions:
         if (
             (arena[d] == 0)
-            and (game_state["explosion_map"][d] < 1)
+            and (game_state["explosion_map"][d] < 10)
             and (bomb_map[d] > 0)
             and (d not in others)
             and (d not in bomb_xys)

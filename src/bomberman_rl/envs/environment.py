@@ -230,7 +230,9 @@ class GenericWorld:
         :return:
         """
         for bomb in self.bombs:
-            if bomb.timer <= 0:
+            if bomb.timer > 0:
+                bomb.timer -= 1
+            else:
                 # Explode when timer is finished
                 self.logger.info(
                     f"Agent <{bomb.owner.name}>'s bomb at {(bomb.x, bomb.y)} explodes"
@@ -240,6 +242,7 @@ class GenericWorld:
 
                 # Clear crates
                 for x, y in blast_coords:
+                    self.explosions.append(Explosion(x, y, bomb.owner, s.EXPLOSION_TIMER))
                     if self.arena[x, y] == 1:
                         self.arena[x, y] = 0
                         bomb.owner.add_event(e.CRATE_DESTROYED)
@@ -249,24 +252,20 @@ class GenericWorld:
                                 c.collectable = True
                                 self.logger.info(f"Coin found at {(x, y)}")
                                 bomb.owner.add_event(e.COIN_FOUND)
-
-                # Create explosion
-                screen_coords = [
-                    (
-                        s.GRID_OFFSET[0] + s.GRID_SIZE * x,
-                        s.GRID_OFFSET[1] + s.GRID_SIZE * y,
-                    )
-                    for (x, y) in blast_coords
-                ]
-                self.explosions.append(
-                    Explosion(
-                        blast_coords, screen_coords, bomb.owner, s.EXPLOSION_TIMER
-                    )
-                )
                 bomb.active = False
-            else:
-                # Progress countdown
-                bomb.timer -= 1
+                # # Create explosion
+                # screen_coords = [
+                #     (
+                #         s.GRID_OFFSET[0] + s.GRID_SIZE * x,
+                #         s.GRID_OFFSET[1] + s.GRID_SIZE * y,
+                #     )
+                #     for (x, y) in blast_coords
+                # ]
+                # self.explosions.append(
+                #     Explosion(
+                #         blast_coords, screen_coords, bomb.owner, s.EXPLOSION_TIMER
+                #     )
+                # )
         self.bombs = [b for b in self.bombs if b.active]
 
     def evaluate_explosions(self):
@@ -276,7 +275,7 @@ class GenericWorld:
             # Kill agents
             if explosion.is_dangerous():
                 for a in self.active_agents:
-                    if (not a.dead) and (a.x, a.y) in explosion.blast_coords:
+                    if (not a.dead) and (a.x, a.y) == (explosion.x, explosion.y):
                         agents_hit.add(a)
                         # Note who killed whom, adjust scores
                         if a is explosion.owner:
@@ -477,13 +476,17 @@ class BombeRLeWorld(GenericWorld):
             "user_input": self.user_input,
         }
 
-        explosion_map = np.zeros(self.arena.shape)
-        for exp in self.explosions:
-            if exp.is_dangerous():
-                for x, y in exp.blast_coords:
-                    explosion_map[x, y] = max(explosion_map[x, y], exp.timer - 1)
-        state["explosion_map"] = explosion_map
+        explosion_map = np.zeros(state["field"].shape, dtype="int16")
+        for (x, y), stage, timer in [e.get_state() for e in self.explosions]:
+            explosion_map[x, y] = (1 - stage) * 10 + timer
 
+        #explosion_map = np.zeros(self.arena.shape)
+        #for exp in self.explosions:
+        #    if exp.is_dangerous():
+        #        for x, y in exp.blast_coords:
+        #            explosion_map[x, y] = max(explosion_map[x, y], exp.timer - 1)
+
+        state["explosion_map"] = explosion_map
         return state
 
     def poll_and_run_agents(self, env_user_action):
@@ -692,7 +695,13 @@ class GUI:
 
         # Explosions
         for explosion in self.world.explosions:
-            explosion.render(self.screen)
+            explosion.render(
+                self.screen,
+                s.GRID_OFFSET[0] + s.GRID_SIZE * explosion.x,
+                s.GRID_OFFSET[1] + s.GRID_SIZE * explosion.y,
+            )
+        #for explosion in self.world.explosions:
+        #    explosion.render(self.screen)
 
         # Scores
         # agents = sorted(self.agents, key=lambda a: (a.score, -a.mean_time), reverse=True)

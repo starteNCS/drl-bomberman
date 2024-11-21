@@ -97,16 +97,20 @@ class Explosion(Item):
         [loadScaledAvatar(s.ASSET_DIR / f"smoke_{i}.png") for i in range(2)],
     ]
 
-    def __init__(self, blast_coords, screen_coords, owner, timer):
+    def __init__(self, x, y, owner, timer):
         super().__init__()
-        self.blast_coords = blast_coords
-        self.screen_coords = screen_coords
+        #self.blast_coords = blast_coords
+        #self.screen_coords = screen_coords
         self.owner = owner
         self.timer = timer
         self.stage = 0
+        self.x, self.y = x, y
 
     def is_dangerous(self):
         return self.stage == 0
+
+    def get_state(self):
+        return (self.x, self.y), self.stage, self.timer
 
     def next_stage(self):
         try:
@@ -115,11 +119,10 @@ class Explosion(Item):
         except IndexError:
             self.stage = None
 
-    def render(self, screen, **kwargs):
-        img = pygame.transform.rotate(
+    def render(self, screen, x, y):
+        avatar = pygame.transform.rotate(
             Explosion.ASSETS[self.stage][self.timer - 1], (-50 * time()) % 360
         )
-        rect = img.get_rect()
-        for x, y in self.screen_coords:
-            rect.center = x + 15, y + 15
-            screen.blit(img, rect.topleft)
+        rect = avatar.get_rect()
+        rect.center = x + 15, y + 15
+        screen.blit(avatar, rect.topleft)
