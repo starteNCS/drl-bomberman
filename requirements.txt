@@ -1,0 +1,39 @@
+black @ file:///croot/black_1725573853246/work
+Brotli @ file:///croot/brotli-split_1714483155106/work
+certifi @ file:///croot/certifi_1725551672989/work/certifi
+cfgv==3.4.0
+charset-normalizer @ file:///croot/charset-normalizer_1721748349566/work
+click @ file:///croot/click_1698129812380/work
+cloudpickle @ file:///croot/cloudpickle_1721657346512/work
+distlib==0.3.9
+Farama-Notifications @ file:///croot/farama-notifications_1683058702908/work
+filelock @ file:///croot/filelock_1700591183607/work
+gmpy2 @ file:///work/ci_py311/gmpy2_1676839849213/work
+gymnasium @ file:///croot/gymnasium-split_1732039904662/work
+identify==2.6.2
+idna @ file:///croot/idna_1714398848350/work
+jax-jumpy @ file:///croot/jax-jumpy_1683230527192/work
+Jinja2 @ file:///croot/jinja2_1730902924303/work
+MarkupSafe @ file:///croot/markupsafe_1704205993651/work
+mkl-service==2.4.0
+mkl_fft @ file:///io/mkl313/mkl_fft_1730824109137/work
+mkl_random @ file:///io/mkl313/mkl_random_1730823916628/work
+mpmath @ file:///croot/mpmath_1690848262763/work
+mypy-extensions @ file:///croot/mypy_extensions_1695130926492/work
+networkx @ file:///croot/networkx_1720002482208/work
+nodeenv==1.9.1
+numpy @ file:///croot/numpy_and_numpy_base_1708638617955/work/dist/numpy-1.26.4-cp311-cp311-linux_x86_64.whl#sha256=5f96f274d410a1682519282ae769c877d32fdbf171aa8badec7bf5e1d3a1748a
+packaging @ file:///croot/packaging_1720101850331/work
+pathspec @ file:///work/ci_py311_2/pathspec_1679337288229/work
+pillow @ file:///croot/pillow_1731594689713/work
+platformdirs @ file:///croot/platformdirs_1692205439124/work
+pre_commit==4.0.1
+PySocks @ file:///work/ci_py311/pysocks_1676822712504/work
+PyYAML @ file:///croot/pyyaml_1728657952215/work
+requests @ file:///croot/requests_1730999120400/work
+scipy @ file:///croot/scipy_1731622509417/work/dist/scipy-1.14.1-cp311-cp311-linux_x86_64.whl#sha256=af58dda0b037bb7ae38465acc8662fa48e6ee59e6df901e9d4d9d6772dd04e7d
+sympy @ file:///croot/sympy_1724938189289/work
+triton @ file:///opt/conda/envs/bld/conda-bld/torchtriton_1721056825793/work/python
+typing_extensions @ file:///croot/typing_extensions_1715268824938/work
+urllib3 @ file:///croot/urllib3_1727769808118/work
+virtualenv==20.27.1
