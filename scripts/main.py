@@ -129,7 +129,7 @@ def loop(env, agent, args):
                 time.sleep(0.5) # wait until user closes GUI
                 action, quit = env.unwrapped.get_user_action()
         else:
-            action, quit = agent.act(state), False
+            action, quit = agent.act(state), env.unwrapped.get_user_quit()
             action = Actions(action)._name_
 
         if quit:
