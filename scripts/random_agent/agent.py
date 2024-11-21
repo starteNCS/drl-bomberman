@@ -10,24 +10,25 @@ class Agent:
 
     def setup(self):
         """
-        Get ready to act.
+        Before episode. Use this to setup action related state that is required to act on the environment e.g. loading an (already trained) model.
         """
         self.rng = np.random.default_rng()
-        self.n_actions = len(Actions)
 
 
     def setup_training(self):
         """
-        Get ready to train.
+        Before episode (optional). Use this to setup additional training related state e.g. a replay memory, learning rates etc.
         """
         pass
 
 
     def act(self, state):
         """
-        Act: pick an action based on the state.
+        Before step: return action based on state.
+
+        :param state: The state of the environment.
         """
-        return np.argmax(self.rng.random(self.n_actions))
+        return np.argmax(self.rng.random(len(Actions)))
     
 
     def game_events_occurred(
@@ -38,18 +39,18 @@ class Agent:
         events: list[str],
     ):
         """
-        Train: update the model after step in the environment.
+        After step in environment (optional). Use this e.g. for model training.
 
-        :param old_state: The state the agent was in before.
-        :param self_action: The action the agent performed.
-        :param new_state: The state the agent is in now.
-        :param events: The events that occurred when going from `old_state` to `new_state`.
+        :param old_state: Old state of the environment.
+        :param self_action: Performed action.
+        :param new_state: New state of the environment.
+        :param events: Events that occurred during step. These might be used for Reward Shaping.
         """
         pass
         
 
     def end_of_round(self):
         """
-        Callback after episode ended.
+        After episode ended (optional). Use this e.g. for model training and saving.
         """
         pass

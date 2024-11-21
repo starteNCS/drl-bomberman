@@ -4,6 +4,7 @@
 **/replays/*
 !**/replays/.gitkeep
 **/.vscode/
+**/docs/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
