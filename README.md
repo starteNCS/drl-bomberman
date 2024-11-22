@@ -31,7 +31,7 @@ Student project to train and compete Reinforcement Learning Agents in a Bomberma
    conda env create --name <name> -f environment.yml
    conda activate <name>
    ```
-   This will implicitly install this package as dependency in editable mode.
+   This will implicitly install this package as dependency in editable mode. This does not work on all architectures, see **Troubleshooting**.
 
 3. Alternative:
    ```bash
@@ -111,3 +111,15 @@ class RandomAgent:
             action = np.argmax(self.rng.random(len(Actions)))
         return action
 ```
+
+## Troubleshooting
+On arm64 Macs, the given conda environment does not work.
+```bash
+conda create --name <name> python=3.11.10
+conda activate <name>
+pip install configargparse
+pip install gymnasium
+pip install pygame
+PYTHONPATH=src python scripts/main.py
+```
+Manual installation of further packages.
