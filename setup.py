@@ -14,8 +14,16 @@ setup(
     author="N.",
     packages=find_packages(where="src"),
     package_dir={"": "src"},
-    install_requires=[],
+    install_requires=[
+        "gymnasium[other]",
+        "pygame[other]",
+        "configargparse"
+    ],
     extras_require={
+        "dev": [
+            "black",
+            "pre-commit"
+        ]
     },
     python_requires=">=3.8",
 )

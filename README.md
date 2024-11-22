@@ -28,10 +28,10 @@ Student project to train and compete Reinforcement Learning Agents in a Bomberma
 
 2. Create conda env:
    ```bash
-   conda env create --name <name> -f environment.yml
+   conda env create --name <name>
    conda activate <name>
    ```
-   This will implicitly install this package as dependency in editable mode. This does not work on all architectures, see **Troubleshooting**.
+   This will implicitly install this package as dependency in editable mode.
 
 3. Alternative:
    ```bash
@@ -113,7 +113,7 @@ class RandomAgent:
 ```
 
 ## Troubleshooting
-On arm64 Macs, the given conda environment does not work.
+The following  arm64 Macs, the given conda environment does not work.
 ```bash
 conda create --name <name> python=3.11.10
 conda activate <name>
