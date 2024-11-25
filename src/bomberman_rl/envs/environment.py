@@ -70,7 +70,6 @@ class GenericWorld:
         self.round = 0
         self.round_statistics = {}
         self.running = False
-        self.user_input = None
 
     def setup_logging(self):
         self.logger = logging.getLogger("BombeRLeWorld")
@@ -83,9 +82,6 @@ class GenericWorld:
         handler.setFormatter(formatter)
         self.logger.addHandler(handler)
         self.logger.info("Initializing game world")
-
-    def _opponent_agents(self):
-        return [a for a in self.active_agents if not a.env_user]
 
     def new_round(self):
         if self.running:
@@ -108,6 +104,7 @@ class GenericWorld:
 
         # Arena with wall and crate layout
         self.arena, self.coins, self.active_agents = self.build_arena()
+        self.killed_agents = []
 
         for agent in self.active_agents:
             agent.start_round()
@@ -178,13 +175,11 @@ class GenericWorld:
     def send_game_events(self):
         pass
 
-    def do_step(self, action, user_input="WAIT"):
+    def do_step(self, env_user_action):
         assert self.running
         self.step += 1
         self.logger.info(f"STARTING STEP {self.step}")
-        self.user_input = user_input
-        self.logger.debug(f"User input: {self.user_input}")
-        self.poll_and_run_agents(action)
+        self.poll_and_run_agents(env_user_action)
 
         # Progress world elements based
         self.collect_coins()
@@ -299,10 +294,10 @@ class GenericWorld:
         for a in agents_hit:
             a.dead = True
             self.active_agents.remove(a)
+            self.killed_agents.add(a)
             a.add_event(e.GOT_KILLED)
             for aa in self.active_agents:
-                if aa is not a:
-                    aa.add_event(e.OPPONENT_ELIMINATED)
+                aa.add_event(e.OPPONENT_ELIMINATED)
 
     def end_round(self):
         if not self.running:
@@ -323,18 +318,12 @@ class GenericWorld:
 
     def time_to_stop(self):
         # Check round stopping criteria
-        if len(self.active_agents) == len(self._opponent_agents()):
+        if len((a for a in self.killed_agents if a.env_user)):
             self.logger.info("Env user dead, wrap up round")
             return True
 
-        # TODO check below for need for adaption
-        if (
-            len(self.active_agents) == 1
-            and (self.arena == 1).sum() == 0
-            and all([not c.collectable for c in self.coins])
-            and len(self.bombs) + len(self.explosions) == 0
-        ):
-            self.logger.info("One agent left alive with nothing to do, wrap up round")
+        if len(self.active_agents) <= 1:
+            self.logger.info("All opponents dead")
             return True
 
         if (
@@ -473,7 +462,6 @@ class BombeRLeWorld(GenericWorld):
             ],
             "bombs": [bomb.get_state() for bomb in self.bombs],
             "coins": [coin.get_state() for coin in self.coins if coin.collectable],
-            "user_input": self.user_input,
         }
 
         explosion_map = np.zeros(state["field"].shape, dtype="int16")
@@ -494,55 +482,51 @@ class BombeRLeWorld(GenericWorld):
             state = self.get_state_for_agent(a)
             a.store_game_state(state)
             a.reset_game_events()
-            if a.available_think_time > 0 and not a.env_user:
+            if a.available_think_time > 0:
                 a.act(state)
 
         # Give agents time to decide
         perm = self.rng.permutation(len(self.active_agents))
         for i in perm:
             a = self.active_agents[i]
-            if a.env_user:
-                self.logger.info(f"Agent <{a.name}> chose action {env_user_action}.")
-                self.perform_agent_action(a, env_user_action)
-            else:
-                if a.available_think_time > 0:
-                    try:
-                        action, think_time = a.wait_for_act()
-                    except KeyboardInterrupt:
-                        # Stop the game
+            if a.available_think_time > 0:
+                try:
+                    action, think_time = a.wait_for_act()
+                except KeyboardInterrupt:
+                    # Stop the game
+                    raise
+                except:
+                    if not self.args.silence_errors:
                         raise
-                    except:
-                        if not self.args.silence_errors:
-                            raise
-                        # Agents with errors cannot continue
-                        action = "ERROR"
-                        think_time = float("inf")
+                    # Agents with errors cannot continue
+                    action = "ERROR"
+                    think_time = float("inf")
 
-                    self.logger.info(
-                        f"Agent <{a.name}> chose action {action} in {think_time:.2f}s."
+                self.logger.info(
+                    f"Agent <{a.name}> chose action {action} in {think_time:.2f}s."
+                )
+                if think_time > a.available_think_time:
+                    next_think_time = a.base_timeout - (
+                        think_time - a.available_think_time
                     )
-                    if think_time > a.available_think_time:
-                        next_think_time = a.base_timeout - (
-                            think_time - a.available_think_time
-                        )
-                        self.logger.warning(
-                            f'Agent <{a.name}> exceeded think time by {think_time - a.available_think_time:.2f}s. Setting action to "WAIT" and decreasing available time for next round to {next_think_time:.2f}s.'
-                        )
-                        action = "WAIT"
-                        a.trophies.append(Trophy.time_trophy)
-                        a.available_think_time = next_think_time
-                    else:
-                        self.logger.info(
-                            f"Agent <{a.name}> stayed within acceptable think time."
-                        )
-                        a.available_think_time = a.base_timeout
+                    self.logger.warning(
+                        f'Agent <{a.name}> exceeded think time by {think_time - a.available_think_time:.2f}s. Setting action to "WAIT" and decreasing available time for next round to {next_think_time:.2f}s.'
+                    )
+                    action = "WAIT"
+                    a.trophies.append(Trophy.time_trophy)
+                    a.available_think_time = next_think_time
                 else:
                     self.logger.info(
-                        f"Skipping agent <{a.name}> because of last slow think time."
+                        f"Agent <{a.name}> stayed within acceptable think time."
                     )
-                    a.available_think_time += a.base_timeout
-                    action = "WAIT"
-                self.perform_agent_action(a, action)
+                    a.available_think_time = a.base_timeout
+            else:
+                self.logger.info(
+                    f"Skipping agent <{a.name}> because of last slow think time."
+                )
+                a.available_think_time += a.base_timeout
+                action = "WAIT"
+            self.perform_agent_action(a, action)
 
     def send_game_events(self):
         # Send events to all agents that expect them, then reset and wait for them

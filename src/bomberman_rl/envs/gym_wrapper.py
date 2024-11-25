@@ -17,10 +17,6 @@ class Actions(Enum):
     BOMB = 5
 
 
-class BombermanStateWrapper(Space):
-    pass  # TODO: interface for state in order to access env.state_space e.g. env.state_space.sample()
-
-
 class BombermanEnvWrapper(gym.Env):
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 4}
 
@@ -37,9 +33,13 @@ class BombermanEnvWrapper(gym.Env):
         # every_step = not args.skip_frames
 
         # Delegate
-        agents = [("dummy_env_user", 0)] + [
-            (opponent, 0) for opponent in args.opponents
-        ]
+        agents = []
+        for player_name in (args.players if args.players else []):
+            agents.append((player_name, 0))
+        for player_name in (args.learners if args.learners else []):
+            agents.append((player_name, 1))
+        if not args.competition:
+            agents = [("env_user", 0)] + agents
         self.delegate = BombeRLeWorld(self.args, agents)
 
         # Rendering

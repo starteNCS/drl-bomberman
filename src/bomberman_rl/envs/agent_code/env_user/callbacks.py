@@ -1,5 +1,3 @@
-# The backend of the dummy env user agent is never used
-
 def setup(self):
     """Called once before a set of games to initialize data structures etc.
 
@@ -12,7 +10,7 @@ def setup(self):
     pass
 
 
-def act(self, game_state):
+def act(self, game_state, env_user_action):
     """
     Called each game step to determine the agent's next action.
 
@@ -20,4 +18,4 @@ def act(self, game_state):
     which is a dictionary. Consult 'get_state_for_agent' in environment.py to see
     what it contains.
     """
-    pass
+    return env_user_action
