@@ -76,6 +76,7 @@ class Actions(Enum):
     'step': int,
     'walls': np.array((17, 17), dtype=int16),
     'crates': np.array((17, 17), dtype=int16),
+    'coins': np.array((17, 17), dtype=int16),
     'bombs': np.array((17, 17), dtype=int16),
     'explosions': np.array((17, 17), dtype=int16),
     'self_pos': np.array((17, 17), dtype=int16),
