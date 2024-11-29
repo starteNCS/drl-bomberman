@@ -59,7 +59,7 @@ def main(argv=None):
         env = RecordVideo(env, video_folder=args.video, name_prefix=args.match_name)
 
     agent = provideAgent(env, tournament=args.tournament)
-    if agent is None and not args.competition:
+    if agent is None and not args.tournament:
         raise AssertionError("Either provide an agent or run a tournament")
     if args.train:
         agent.setup_training()

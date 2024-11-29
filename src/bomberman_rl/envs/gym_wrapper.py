@@ -18,7 +18,7 @@ class Actions(Enum):
 
 
 class BombermanEnvWrapper(gym.Env):
-    metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 8}
+    metadata = {"render_modes": ["human", "rgb_array"], "render_fps": s.RENDER_FPS}
 
     def __init__(self, args):
         self.args = args

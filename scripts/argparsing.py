@@ -25,6 +25,12 @@ def parse(argv=None):
         help="Tournament mode: compete agents environment internal",
     )
     parser.add(
+        "--train",
+        default=False,
+        action="store_true",
+        help="Whether training callbacks on agent should be called",
+    )
+    parser.add(
         "--players",
         nargs='+',
         help="Set agents that participate playing",
@@ -51,7 +57,8 @@ def parse(argv=None):
         help="Wait for key press until next movement",
     )
     parser.add(
-        "--log-dir", default=os.path.dirname(os.path.abspath(__file__)) + "/logs"
+        "--log-dir",
+        default=os.path.dirname(os.path.abspath(__file__)) + "/logs"
     )
     parser.add(
         "--video",
@@ -64,7 +71,7 @@ def parse(argv=None):
         default="classic",
         choices=s.SCENARIOS
     )
-    
+
     # Render mode
     args = parser.parse_args(argv)
     if args.video:
