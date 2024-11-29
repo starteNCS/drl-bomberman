@@ -172,14 +172,13 @@ class BombermanEnvWrapper(gym.Env):
         return False
 
     def _get_obs(self):
-        # agent 0 is implicitly the exterior agent
-        obs = self.delegate.get_state_for_agent(self.delegate.agents[0])
+        obs = self.delegate.get_state_for_agent(self.delegate.agents[0]) # agent 0 is implicitly the exterior agent
         return self._state_delegate2gym(obs)
 
     def _get_info(self):
-        # agent 0 is implicitly the exterior agent
         return {
-            "events": self.delegate.agents[0].events
+            "events": self.delegate.agents[0].events, # agent 0 is implicitly the exterior agent
+            "leaderboard": self.delegate.leaderboard()
         }
 
     def reset(self, seed=None, options=None):

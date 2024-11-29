@@ -440,14 +440,16 @@ class BombeRLeWorld(GenericWorld):
         for (x, y), stage, timer in [e.get_state() for e in self.explosions]:
             explosion_map[x, y] = (1 - stage) * 10 + timer
 
-        #explosion_map = np.zeros(self.arena.shape)
-        #for exp in self.explosions:
-        #    if exp.is_dangerous():
-        #        for x, y in exp.blast_coords:
-        #            explosion_map[x, y] = max(explosion_map[x, y], exp.timer - 1)
-
         state["explosion_map"] = explosion_map
         return state
+    
+    def leaderboard(self):
+        sorted_agents = [(a.name, a.score) for a in self.agents]
+        sorted_agents.sort(reverse=True, key=lambda a: a[1])
+        result = {
+            name: score for name, score in sorted_agents
+        }
+        return result
 
     def poll_and_run_agents(self, env_user_action):
         for a in self.active_agents:
