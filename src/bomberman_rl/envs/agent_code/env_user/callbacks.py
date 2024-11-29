@@ -10,7 +10,7 @@ def setup(self):
     pass
 
 
-def act(self, game_state, env_user_action):
+def act(self, game_state, **kwargs):
     """
     Called each game step to determine the agent's next action.
 
@@ -18,4 +18,4 @@ def act(self, game_state, env_user_action):
     which is a dictionary. Consult 'get_state_for_agent' in environment.py to see
     what it contains.
     """
-    return env_user_action
+    return kwargs["env_user_action"]

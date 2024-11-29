@@ -15,26 +15,6 @@ from . import events as e
 from .agents import Agent, SequentialAgentBackend
 from .items import Bomb, Coin, Explosion, loadScaledAvatar
 
-WorldArgs = namedtuple(
-    "WorldArgs",
-    [
-        "no_gui",
-        "fps",
-        "turn_based",
-        "update_interval",
-        "save_replay",
-        "replay",
-        "make_video",
-        "continue_without_training",
-        "log_dir",
-        "save_stats",
-        "match_name",
-        "seed",
-        "silence_errors",
-        "scenario",
-    ],
-)
-
 
 class Trophy:
     coin_trophy = pygame.transform.smoothscale(
@@ -63,7 +43,7 @@ class GenericWorld:
 
     round_id: str
 
-    def __init__(self, args: WorldArgs):
+    def __init__(self, args):
         self.args = args
         self.setup_logging()
         self.colors = list(s.AGENT_COLORS)
@@ -294,7 +274,7 @@ class GenericWorld:
         for a in agents_hit:
             a.dead = True
             self.active_agents.remove(a)
-            self.killed_agents.add(a)
+            self.killed_agents.append(a)
             a.add_event(e.GOT_KILLED)
             for aa in self.active_agents:
                 aa.add_event(e.OPPONENT_ELIMINATED)
@@ -318,21 +298,13 @@ class GenericWorld:
 
     def time_to_stop(self):
         # Check round stopping criteria
-        if len((a for a in self.killed_agents if a.env_user)):
+        if any(a.env_user for a in self.killed_agents):
             self.logger.info("Env user dead, wrap up round")
             return True
 
         if len(self.active_agents) <= 1:
             self.logger.info("All opponents dead")
             return True
-
-        if (
-            any(a.train for a in self.agents)
-            and not self.args.continue_without_training
-        ):
-            if not any([a.train for a in self.active_agents]):
-                self.logger.info("No training agent left alive, wrap up round")
-                return True
 
         # TODO exchange for truncated wrapper
         if self.step >= s.MAX_STEPS:
@@ -368,7 +340,7 @@ class GenericWorld:
 
 
 class BombeRLeWorld(GenericWorld):
-    def __init__(self, args: WorldArgs, agents):
+    def __init__(self, args, agents):
         super().__init__(args)
         self.rng = np.random.default_rng(args.seed)
         self.setup_agents(agents)
@@ -483,7 +455,7 @@ class BombeRLeWorld(GenericWorld):
             a.store_game_state(state)
             a.reset_game_events()
             if a.available_think_time > 0:
-                a.act(state)
+                a.act(state, env_user_action=env_user_action)
 
         # Give agents time to decide
         perm = self.rng.permutation(len(self.active_agents))

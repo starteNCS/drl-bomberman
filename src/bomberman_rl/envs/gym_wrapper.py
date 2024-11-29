@@ -18,19 +18,11 @@ class Actions(Enum):
 
 
 class BombermanEnvWrapper(gym.Env):
-    metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 4}
+    metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 8}
 
     def __init__(self, args):
         self.args = args
         self.render_mode = args.render_mode
-        # if args.train == 0 and not args.continue_without_training:
-        #     args.continue_without_training = True
-        # if args.my_agent:
-        #     agents.append((args.my_agent, len(agents) < args.train))
-        #     args.agents = ["rule_based_agent"] * (s.MAX_AGENTS - 1)
-        # for agent_name in args.agents:
-        #     agents.append((agent_name, len(agents) < args.train))
-        # every_step = not args.skip_frames
 
         # Delegate
         agents = []
@@ -38,7 +30,7 @@ class BombermanEnvWrapper(gym.Env):
             agents.append((player_name, 0))
         for player_name in (args.learners if args.learners else []):
             agents.append((player_name, 1))
-        if not args.competition:
+        if not args.tournament:
             agents = [("env_user", 0)] + agents
         self.delegate = BombeRLeWorld(self.args, agents)
 

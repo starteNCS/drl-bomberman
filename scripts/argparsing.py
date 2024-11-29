@@ -1,12 +1,7 @@
 import os
 from configargparse import ArgParser
-import time
-import gymnasium
-from gymnasium.wrappers import RecordVideo
 
-from bomberman_rl import settings as s, Actions, Bomberman
-
-from random_agent.agent import RandomAgent
+from bomberman_rl import settings as s
 
 
 def parse(argv=None):
@@ -24,6 +19,12 @@ def parse(argv=None):
         help="Disable GUI rendering to increase speed",
     )
     parser.add(
+        "--tournament",
+        default=False,
+        action="store_true",
+        help="Tournament mode: compete agents environment internal",
+    )
+    parser.add(
         "--players",
         nargs='+',
         help="Set agents that participate playing",
@@ -32,12 +33,6 @@ def parse(argv=None):
         "--learners",
         nargs='+',
         help="Set agents that participate playing and learning",
-    )
-    parser.add(
-        "--competition",
-        action="store_true",
-        default=False,
-        help="Whether you want an environment without single user interface",
     )
     parser.add(
         "--match-name",
@@ -56,12 +51,6 @@ def parse(argv=None):
         help="Wait for key press until next movement",
     )
     parser.add(
-        "--train",
-        default=False,
-        action="store_true",
-        help="Call the agent's training endpoints",
-    )
-    parser.add(
         "--log-dir", default=os.path.dirname(os.path.abspath(__file__)) + "/logs"
     )
     parser.add(
@@ -70,18 +59,19 @@ def parse(argv=None):
         const=os.path.dirname(os.path.abspath(__file__)) + "/replays",
         help="Record the session",
     )
-    parser.add("--scenario", default="classic", choices=s.SCENARIOS)
-
+    parser.add(
+        "--scenario",
+        default="classic",
+        choices=s.SCENARIOS
+    )
+    
+    # Render mode
     args = parser.parse_args(argv)
-    if args.learners is None and args.players is None:
-        args.players = ["rule_based_agent"] * 3
+    if args.video:
+        args.render_mode = "rgb_array"
+    elif not args.no_gui:
+        args.render_mode = "human"
+    else:
+        args.render_mode = None
+
     return args
-
-
-def main(argv=None):
-    args = parse(argv)
-    print(args)
-    print("dummy")
-
-if __name__ == "__main__":
-    main()

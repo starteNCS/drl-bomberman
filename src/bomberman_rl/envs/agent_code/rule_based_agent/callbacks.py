@@ -87,7 +87,7 @@ def reset_self(self):
     self.ignore_others_timer = 0
 
 
-def act(self, game_state):
+def act(self, game_state, **kwargs):
     """
     Called each game step to determine the agent's next action.
 

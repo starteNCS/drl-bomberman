@@ -74,7 +74,7 @@ def setup(self):
     np.random.seed()
 
 
-def act(self, game_state):
+def act(self, game_state, **kwargs):
     """
     Called each game step to determine the agent's next action.
 
