@@ -588,20 +588,7 @@ class BombeRLeWorld(GenericWorld):
 class GUI:
     def __init__(self, world: GenericWorld):
         self.world = world
-        # self.screenshot_dir = Path(__file__).parent / "screenshots"
-
-        # Initialize screen
-        self.screen = pygame.display.set_mode((s.WIDTH, s.HEIGHT))
-        pygame.display.set_caption("BombeRLe")
-        icon = loadScaledAvatar(s.ASSET_DIR / "bomb_yellow.png")
-        pygame.display.set_icon(icon)
-
-        # Background and tiles
-        self.background = pygame.Surface((s.WIDTH, s.HEIGHT))
-        self.background = self.background.convert()
-        self.background.fill((0, 0, 0))
-        self.t_wall = loadScaledAvatar(s.ASSET_DIR / "brick.png")
-        self.t_crate = loadScaledAvatar(s.ASSET_DIR / "crate.png")
+        self.screen = None
 
         # Font for scores and such
         font_name = s.ASSET_DIR / "emulogic.ttf"
@@ -612,6 +599,11 @@ class GUI:
             "small": pygame.font.Font(font_name, 8 * s.SCALE),
         }
         self.frame = 0
+
+    def initScreen(self):
+        self.screen = pygame.Surface((s.WIDTH, s.HEIGHT))
+        self.t_wall = loadScaledAvatar(s.ASSET_DIR / "brick.png")
+        self.t_crate = loadScaledAvatar(s.ASSET_DIR / "crate.png")
 
     def render_text(
         self, text, x, y, color, halign="left", valign="top", size="medium", aa=False
@@ -633,13 +625,14 @@ class GUI:
         self.screen.blit(text_surface, text_rect)
 
     def render(self):
-        self.screen.blit(self.background, (0, 0))
+        if self.screen is None:
+            self.initScreen()
 
         if self.world.round == 0:
             return
 
+        self.screen.fill((0, 0, 0))
         self.frame += 1
-        pygame.display.set_caption(f"BombeRLe | Round #{self.world.round}")
 
         # World
         for x in range(self.world.arena.shape[1]):
@@ -700,8 +693,6 @@ class GUI:
                 s.GRID_OFFSET[0] + s.GRID_SIZE * explosion.x,
                 s.GRID_OFFSET[1] + s.GRID_SIZE * explosion.y,
             )
-        #for explosion in self.world.explosions:
-        #    explosion.render(self.screen)
 
         # Scores
         # agents = sorted(self.agents, key=lambda a: (a.score, -a.mean_time), reverse=True)
@@ -809,10 +800,4 @@ class GUI:
                     halign="center",
                     size="medium",
                 )
-
-        # TODO indeed not necessary?
-        # if self.world.running and self.world.args.make_video:
-        #    self.world.logger.debug(f'Saving screenshot for frame {self.frame}')
-        #    pygame.image.save(self.screen, str(self.screenshot_dir / f'{self.world.round_id}_{self.frame:05d}.png'))
-
         return self.screen

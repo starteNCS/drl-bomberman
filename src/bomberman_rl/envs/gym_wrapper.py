@@ -6,6 +6,7 @@ from gymnasium.spaces import Space, Discrete, MultiBinary, MultiDiscrete, Sequen
 
 from . import settings as s
 from .environment import GUI, BombeRLeWorld
+from .items import loadScaledAvatar
 
 
 class Actions(Enum):
@@ -219,12 +220,15 @@ class BombermanEnvWrapper(gym.Env):
             pygame.init()
             pygame.display.init()
             self.window = pygame.display.set_mode((s.WIDTH, s.HEIGHT))
+            pygame.display.set_caption(f"BombeRLe | Round #{self.delegate.round}")
+            icon = loadScaledAvatar(s.ASSET_DIR / "bomb_yellow.png")
+            pygame.display.set_icon(icon)
         if self.clock is None and self.render_mode == "human":
             self.clock = pygame.time.Clock()
 
         canvas = self.gui.render()
 
-        if self.render_mode == "human":
+        if self.render_mode == "human":            
             # The following line copies our drawings from `canvas` to the visible window
             self.window.blit(canvas, canvas.get_rect())
             pygame.event.pump()
