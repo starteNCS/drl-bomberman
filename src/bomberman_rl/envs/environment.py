@@ -430,7 +430,7 @@ class BombeRLeWorld(GenericWorld):
             "field": np.array(self.arena),
             "self": agent.get_state(),
             "others": [
-                other.get_state() for other in self.active_agents if other is not agent
+                other.get_state() for other in self.agents if other is not agent#in self.active_agents if other is not agent
             ],
             "bombs": [bomb.get_state() for bomb in self.bombs],
             "coins": [coin.get_state() for coin in self.coins if coin.collectable],
