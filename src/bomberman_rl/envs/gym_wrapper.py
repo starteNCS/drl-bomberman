@@ -9,29 +9,21 @@ from .actions import ActionSpace, Actions
 from .items import loadScaledAvatar
 
 
-class BombermanStateWrapper(Space):
-    pass  # TODO: interface for state in order to access env.state_space e.g. env.state_space.sample()
-
-
 class BombermanEnvWrapper(gym.Env):
-    metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 4}
+    metadata = {"render_modes": ["human", "rgb_array"], "render_fps": s.RENDER_FPS}
 
     def __init__(self, args):
         self.args = args
         self.render_mode = args.render_mode
-        # if args.train == 0 and not args.continue_without_training:
-        #     args.continue_without_training = True
-        # if args.my_agent:
-        #     agents.append((args.my_agent, len(agents) < args.train))
-        #     args.agents = ["rule_based_agent"] * (s.MAX_AGENTS - 1)
-        # for agent_name in args.agents:
-        #     agents.append((agent_name, len(agents) < args.train))
-        # every_step = not args.skip_frames
 
         # Delegate
-        agents = [("dummy_env_user", 0)] + [
-            (opponent, 0) for opponent in args.opponents
-        ]
+        agents = []
+        for player_name in (args.players if args.players else []):
+            agents.append((player_name, 0))
+        for player_name in (args.learners if args.learners else []):
+            agents.append((player_name, 1))
+        if not args.passive:
+            agents = [("env_user", 0)] + agents
         self.delegate = BombeRLeWorld(self.args, agents)
 
         # Rendering
@@ -174,14 +166,13 @@ class BombermanEnvWrapper(gym.Env):
         return False
 
     def _get_obs(self):
-        # agent 0 is implicitly the exterior agent
-        obs = self.delegate.get_state_for_agent(self.delegate.agents[0])
+        obs = self.delegate.get_state_for_agent(self.delegate.agents[0]) # agent 0 is implicitly the exterior agent
         return self._state_delegate2gym(obs)
 
     def _get_info(self):
-        # agent 0 is implicitly the exterior agent
         return {
-            "events": self.delegate.agents[0].events
+            "events": self.delegate.agents[0].events, # agent 0 is implicitly the exterior agent
+            "leaderboard": self.delegate.leaderboard()
         }
 
     def reset(self, seed=None, options=None):

@@ -31,7 +31,7 @@ def setup(self):
             self.model = pickle.load(file)
 
 
-def act(self, game_state: dict) -> str:
+def act(self, game_state: dict, **kwargs) -> str:
     """
     Your agent should parse the input, think, and take a decision.
     When not in training mode, the maximum execution time for this method is 0.5s.

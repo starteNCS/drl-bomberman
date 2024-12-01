@@ -1,77 +1,12 @@
-import os
-from configargparse import ArgParser
 import time
 import gymnasium
 from gymnasium.wrappers import RecordVideo
 
 from bomberman_rl import settings as s, Actions, Bomberman
 
+from argparsing import parse
 from random_agent.agent import RandomAgent
-
-
-def parse(argv=None):
-    parser = ArgParser(default_config_files=[])
-
-    parser.add(
-        "--seed",
-        type=int,
-        help="Seed the env's random number generator for the sake of reproducibility",
-    )
-    parser.add(
-        "--no-gui",
-        default=False,
-        action="store_true",
-        help="Disable GUI rendering to increase speed",
-    )
-    parser.add(
-        "--opponents",
-        type=str,
-        nargs="+",
-        default=["rule_based_agent"] * 3,
-        help="Set opponent agents",
-    )
-    parser.add(
-        "--match-name",
-        help="Match name (used for e.g. displaying, separating recordings, etc.)",
-    )
-    parser.add(
-        "--silence-errors",
-        default=False,
-        action="store_true",
-        help="Ignore errors from agents",
-    )
-    parser.add(
-        "--user-play",
-        default=False,
-        action="store_true",
-        help="Wait for key press until next movement",
-    )
-    parser.add(
-        "--train",
-        default=False,
-        action="store_true",
-        help="Call the agent's training endpoints",
-    )
-    parser.add(
-        "--log-dir", default=os.path.dirname(os.path.abspath(__file__)) + "/logs"
-    )
-    parser.add(
-        "--video",
-        nargs="?",
-        const=os.path.dirname(os.path.abspath(__file__)) + "/replays",
-        help="Record the session",
-    )
-    parser.add("--scenario", default="classic", choices=s.SCENARIOS)
-
-    args = parser.parse_args(argv)
-    if args.video:
-        args.render_mode = "rgb_array"
-    elif not args.no_gui:
-        args.render_mode = "human"
-    else:
-        args.render_mode = None
-
-    return args
+from dummy_agent.agent import DummyAgent
 
 
 def loop(env, agent, args):
@@ -82,7 +17,7 @@ def loop(env, agent, args):
         if args.user_play:
             action, quit = env.unwrapped.get_user_action()
             while action is None and not quit:
-                time.sleep(.1)  # wait for user to act or quit
+                time.sleep(0.1)  # wait for user action or quit
                 action, quit = env.unwrapped.get_user_action()
         else:
             action, quit = agent.act(state), env.unwrapped.get_user_quit()
@@ -102,11 +37,19 @@ def loop(env, agent, args):
     if not args.no_gui:
         quit = env.unwrapped.get_user_quit()
         while not quit:
-            time.sleep(0.5)
+            time.sleep(0.5) # wait for quit
             quit = env.unwrapped.get_user_quit()
 
     env.close()
 
+
+def provideAgent(env, passive: bool):
+    if passive:
+        return DummyAgent()
+    else:
+        agent = RandomAgent()
+        agent.setup()
+        return agent
 
 def main(argv=None):
     args = parse(argv)
@@ -114,9 +57,9 @@ def main(argv=None):
     if args.video:
         env = RecordVideo(env, video_folder=args.video, name_prefix=args.match_name)
 
-    # Agent setup
-    agent = RandomAgent()
-    agent.setup()
+    agent = provideAgent(env, passive=args.passive)
+    if agent is None and not args.passive:
+        raise AssertionError("Either provide an agent or run in passive mode by specifying --passive")
     if args.train:
         agent.setup_training()
 

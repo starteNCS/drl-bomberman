@@ -40,13 +40,13 @@ Student project to train and compete Reinforcement Learning Agents in a Bomberma
    Manually install further requirements.
 
 ### Run
-- Watch a random agent play
+- Watch arbitrary agents play
    ```bash
-   python scripts/main.py
+   python scripts/main.py --players rule_based_agent rule_based_agent
    ```
 - Play yourself (movement: `Up`, `Down`, `Left`, `Right`; bomb: `Space`, wait: `Enter`)
    ```bash
-   python scripts/main.py --user-play
+   python scripts/main.py --players rule_based_agent rule_based_agent --user-play
    ```
 - Further
     ```bash
@@ -106,7 +106,7 @@ class RandomAgent:
     def setup(self):
         self.rng = np.random.default_rng()
 
-    def act(self, state: dict) -> int:
+    def act(self, state: dict, **kwargs) -> int:
         action = Actions.BOMB.value
         while action == Actions.BOMB.value:
             action = np.argmax(self.rng.random(len(Actions)))

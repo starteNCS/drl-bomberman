@@ -2,8 +2,7 @@ import pickle
 from collections import deque, namedtuple
 from typing import List
 
-import events as e
-
+import bomberman_rl.envs.events as e
 from .callbacks import state_to_features
 
 # This is only an example!

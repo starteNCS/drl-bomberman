@@ -6,5 +6,5 @@ def setup(self):
     self.rng = np.random.default_rng()
 
 
-def act(self, game_state: dict):
+def act(self, game_state: dict, **kwargs):
     return ActionSpace.sample()

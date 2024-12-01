@@ -17,7 +17,7 @@ from .items import loadScaledAvatar
 AGENT_API = {
     "callbacks": {
         "setup": ["self"],
-        "act": ["self", "game_state: dict"],
+        "act": ["self", "game_state: dict", "**kwargs"],
     },
     "train": {
         "setup_training": ["self"],
@@ -183,8 +183,8 @@ class Agent:
     def reset_game_events(self):
         self.events = []
 
-    def act(self, game_state):
-        self.backend.send_event("act", game_state)
+    def act(self, game_state, env_user_action=None):
+        self.backend.send_event("act", game_state, env_user_action=env_user_action)
 
     def wait_for_act(self):
         action, think_time = self.backend.get_with_time("act")
@@ -210,12 +210,10 @@ class AgentRunner:
     """
     Agent callback runner (called by backend).
     """
-
     def __init__(self, train, agent_name, code_name, result_queue, log_dir):
         self.agent_name = agent_name
         self.code_name = code_name
         self.result_queue = result_queue
-        print(os.getcwd())
         self.callbacks = importlib.import_module(
             ".envs.agent_code." + self.code_name + ".callbacks",
             "bomberman_rl"
@@ -225,23 +223,7 @@ class AgentRunner:
                 ".envs.agent_code." + self.code_name + ".train",
                 "bomberman_rl"
             )
-        for module_name in ["callbacks"] + (["train"] if train else []):
-            module = getattr(self, module_name)
-            for event_name, event_args in AGENT_API[module_name].items():
-                proper_signature = f"def {event_name}({', '.join(event_args)}):\n\tpass"
-                if not hasattr(module, event_name):
-                    raise NotImplementedError(
-                        f"Agent code {self.code_name} does not provide callback for {event_name}.\nAdd this function to your code in {module_name}.py:\n\n{proper_signature}"
-                    )
-                actual_arg_count = len(
-                    signature(getattr(module, event_name)).parameters
-                )
-                event_arg_count = len(event_args)
-                if actual_arg_count != event_arg_count:
-                    raise TypeError(
-                        f"Agent code {self.code_name}'s {event_name!r} has {actual_arg_count} arguments, but {event_arg_count} are required.\nChange your function's signature to the following:\n\n{proper_signature}"
-                    )
-
+        self.check_interface(train=train)
         self.fake_self = SimpleNamespace()
         self.fake_self.train = train
         self.wlogger = logging.getLogger(self.agent_name + "_wrapper")
@@ -260,7 +242,28 @@ class AgentRunner:
         self.wlogger.addHandler(handler)
         self.fake_self.logger.addHandler(handler)
 
-    def process_event(self, event_name, *event_args):
+    def check_interface(self, train):
+        """
+        Check provided agent module's interface for compliance to this env engine
+        """
+        for module_name in ["callbacks"] + (["train"] if train else []):
+            module = getattr(self, module_name)
+            for event_name, event_args in AGENT_API[module_name].items():
+                proper_signature = f"def {event_name}({', '.join(event_args)}):\n\tpass"
+                if not hasattr(module, event_name):
+                    raise NotImplementedError(
+                        f"Agent code {self.code_name} does not provide callback for {event_name}.\nAdd this function to your code in {module_name}.py:\n\n{proper_signature}"
+                    )
+                actual_arg_count = len(
+                    signature(getattr(module, event_name)).parameters
+                )
+                event_arg_count = len(event_args)
+                if actual_arg_count != event_arg_count:
+                    raise TypeError(
+                        f"Agent code {self.code_name}'s {event_name!r} has {actual_arg_count} arguments, but {event_arg_count} are required.\nChange your function's signature to the following:\n\n{proper_signature}"
+                    )
+
+    def process_event(self, event_name, *event_args, **event_kwargs):
         module_name = None
         for module_candidate in AGENT_API:
             if event_name in AGENT_API[module_candidate]:
@@ -272,7 +275,7 @@ class AgentRunner:
         try:
             self.wlogger.debug(f"Calling {event_name} on callback.")
             start_time = time()
-            event_result = getattr(module, event_name)(self.fake_self, *event_args)
+            event_result = getattr(module, event_name)(self.fake_self, *event_args, **event_kwargs)
             duration = time() - start_time
             self.wlogger.debug(
                 f"Got result from callback#{event_name} in {duration:.3f}s."
@@ -298,7 +301,7 @@ class AgentBackend:
     def start(self):
         raise NotImplementedError()
 
-    def send_event(self, event_name, *event_args):
+    def send_event(self, event_name, *event_args, **event_kwargs):
         raise NotImplementedError()
 
     def get(self, expect_name: str, block=True, timeout=None):
@@ -334,14 +337,14 @@ class SequentialAgentBackend(AgentBackend):
             self.train, self.agent_name, self.code_name, self.result_queue, self.log_dir
         )
 
-    def send_event(self, event_name, *event_args):
+    def send_event(self, event_name, *event_args, **event_kwargs):
         prev_cwd = os.getcwd()
         os.chdir(
             os.path.dirname(__file__)
             + f'/agent_code/{self.code_name.replace(".", "/")}/'
         )
         try:
-            self.runner.process_event(event_name, *event_args)
+            self.runner.process_event(event_name, *event_args, **event_kwargs)
         finally:
             os.chdir(prev_cwd)
 
@@ -387,5 +390,5 @@ class ProcessAgentBackend(AgentBackend):
     def start(self):
         self.process.start()
 
-    def send_event(self, event_name, *event_args):
-        self.wta_queue.put((event_name, event_args))
+    def send_event(self, event_name, *event_args, **event_kwargs):
+        self.wta_queue.put((event_name, event_args, event_kwargs))

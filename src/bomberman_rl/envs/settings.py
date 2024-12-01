@@ -23,6 +23,7 @@ MAX_STEPS = 400
 
 
 # GUI properties
+RENDER_FPS = 4
 SCALE = 1
 GRID_SIZE = 30 * SCALE
 WIDTH = 1000 * SCALE
@@ -59,6 +60,3 @@ LOG_GAME = logging.DEBUG
 LOG_AGENT_WRAPPER = logging.INFO
 LOG_AGENT_CODE = logging.DEBUG
 LOG_MAX_FILE_SIZE = 100 * 1024 * 1024  # 100 MB
-
-# Recording
-VIDEO_DIR = Path(__file__).parent / "logs" / "videos"
