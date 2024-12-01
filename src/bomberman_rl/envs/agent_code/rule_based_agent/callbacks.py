@@ -1,8 +1,8 @@
 from collections import deque
 from random import shuffle
-
 import numpy as np
 
+from ...actions import Actions
 
 def look_for_targets(free_space, start, targets, logger=None):
     """Find direction of closest target that can be reached via free tiles.
@@ -242,5 +242,4 @@ def act(self, game_state):
             # Keep track of chosen action for cycle detection
             if a == "BOMB":
                 self.bomb_history.append((x, y))
-
-            return a
+            return Actions._member_map_[a].value

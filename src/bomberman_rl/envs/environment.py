@@ -12,6 +12,7 @@ import pygame
 
 from . import settings as s
 from . import events as e
+from .actions import Actions
 from .agents import Agent, SequentialAgentBackend
 from .items import Bomb, Coin, Explosion, loadScaledAvatar
 
@@ -140,8 +141,12 @@ class GenericWorld:
                 is_free = is_free and (obstacle.x != x or obstacle.y != y)
         return is_free
 
-    def perform_agent_action(self, agent: Agent, action: str):
+    def perform_agent_action(self, agent: Agent, action):
         # Perform the specified action if possible, wait otherwise
+        try:
+            action = Actions(action)._name_
+        except ValueError:
+            agent.add_event(e.INVALID_ACTION)
         if action == "UP" and self.tile_is_free(agent.x, agent.y - 1):
             agent.y -= 1
             agent.add_event(e.MOVED_UP)
@@ -528,7 +533,7 @@ class BombeRLeWorld(GenericWorld):
                         self.logger.warning(
                             f'Agent <{a.name}> exceeded think time by {think_time - a.available_think_time:.2f}s. Setting action to "WAIT" and decreasing available time for next round to {next_think_time:.2f}s.'
                         )
-                        action = "WAIT"
+                        action = Actions._member_map_["WAIT"]
                         a.trophies.append(Trophy.time_trophy)
                         a.available_think_time = next_think_time
                     else:
@@ -541,7 +546,7 @@ class BombeRLeWorld(GenericWorld):
                         f"Skipping agent <{a.name}> because of last slow think time."
                     )
                     a.available_think_time += a.base_timeout
-                    action = "WAIT"
+                    action = Actions._member_map_["WAIT"]
                 self.perform_agent_action(a, action)
 
     def send_game_events(self):

@@ -1,12 +1,10 @@
 import numpy as np
 
+from ...actions import ActionSpace
 
 def setup(self):
-    np.random.seed()
+    self.rng = np.random.default_rng()
 
 
-def act(agent, game_state: dict):
-    agent.logger.info("Pick action at random")
-    return np.random.choice(
-        ["RIGHT", "LEFT", "UP", "DOWN", "BOMB"], p=[0.23, 0.23, 0.23, 0.23, 0.08]
-    )
+def act(self, game_state: dict):
+    return ActionSpace.sample()

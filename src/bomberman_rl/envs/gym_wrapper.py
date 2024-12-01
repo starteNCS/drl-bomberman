@@ -1,4 +1,3 @@
-from enum import Enum
 import gymnasium as gym
 import numpy as np
 import pygame
@@ -6,16 +5,8 @@ from gymnasium.spaces import Space, Discrete, MultiBinary, MultiDiscrete, Sequen
 
 from . import settings as s
 from .environment import GUI, BombeRLeWorld
+from .actions import ActionSpace, Actions
 from .items import loadScaledAvatar
-
-
-class Actions(Enum):
-    UP = 0
-    RIGHT = 1
-    DOWN = 2
-    LEFT = 3
-    WAIT = 4
-    BOMB = 5
 
 
 class BombermanStateWrapper(Space):
@@ -56,7 +47,7 @@ class BombermanEnvWrapper(gym.Env):
             self.gui = GUI(self.delegate)  # delegate rendering
 
         # Gymnasium environment interface
-        self.action_space = Discrete(6)
+        self.action_space = ActionSpace
         self.observation_space = self._init_observation_space()
 
     def _multi_discrete_space(self, n=1):
@@ -166,7 +157,9 @@ class BombermanEnvWrapper(gym.Env):
                 if key_pressed in (pygame.K_q, pygame.K_ESCAPE):
                     return None, True
                 elif key_pressed in s.INPUT_MAP:
-                    return s.INPUT_MAP[key_pressed], False
+                    action = s.INPUT_MAP[key_pressed]
+                    action = Actions._member_map_[action].value
+                    return action, False
         return None, False
 
     def get_user_quit(self):

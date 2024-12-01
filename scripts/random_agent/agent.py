@@ -1,6 +1,6 @@
 import numpy as np
 
-from bomberman_rl import Actions
+from bomberman_rl import Actions, ActionSpace
 
 
 class RandomAgent:
@@ -13,5 +13,5 @@ class RandomAgent:
     def act(self, state: dict) -> int:
         action = Actions.BOMB.value
         while action == Actions.BOMB.value:
-            action = np.argmax(self.rng.random(len(Actions)))
+            action = ActionSpace.sample()
         return action

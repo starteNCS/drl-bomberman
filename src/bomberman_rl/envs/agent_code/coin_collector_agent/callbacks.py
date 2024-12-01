@@ -1,7 +1,8 @@
 from random import shuffle
-
 import numpy as np
-import settings as s
+
+from ...settings import BOMB_POWER
+from ...actions import Actions
 
 
 def look_for_targets(free_space, start, targets, logger=None):
@@ -180,7 +181,7 @@ def act(self, game_state):
 
     # Add proposal to run away from any nearby bomb about to blow
     for (xb, yb), t in bombs:
-        if (xb == x) and (abs(yb - y) <= s.BOMB_POWER):
+        if (xb == x) and (abs(yb - y) <= BOMB_POWER):
             # Run away
             if yb > y:
                 action_ideas.append("UP")
@@ -189,7 +190,7 @@ def act(self, game_state):
             # If possible, turn a corner
             action_ideas.append("LEFT")
             action_ideas.append("RIGHT")
-        if (yb == y) and (abs(xb - x) <= s.BOMB_POWER):
+        if (yb == y) and (abs(xb - x) <= BOMB_POWER):
             # Run away
             if xb > x:
                 action_ideas.append("LEFT")
@@ -207,4 +208,4 @@ def act(self, game_state):
     while len(action_ideas) > 0:
         a = action_ideas.pop()
         if a in valid_actions:
-            return a
+            return Actions._member_map_[a].value

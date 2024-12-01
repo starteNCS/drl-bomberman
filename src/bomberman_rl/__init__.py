@@ -1,11 +1,12 @@
 from gymnasium.envs.registration import register
 import pygame
 
-from .envs.gym_wrapper import BombermanEnvWrapper as Bomberman, Actions
+from .envs.gym_wrapper import BombermanEnvWrapper as Bomberman
+from .envs.actions import Actions, ActionSpace
 from .envs import settings
 from .envs import events
 
-__all__ = ["Bomberman", "Actions", "settings", "events"]
+__all__ = ["Bomberman", "Actions", "ActionSpace", "settings", "events"]
 
 pygame.init()
 register(

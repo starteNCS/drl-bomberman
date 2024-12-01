@@ -82,11 +82,10 @@ def loop(env, agent, args):
         if args.user_play:
             action, quit = env.unwrapped.get_user_action()
             while action is None and not quit:
-                time.sleep(0.5)  # wait until user closes GUI
+                time.sleep(.1)  # wait for user to act or quit
                 action, quit = env.unwrapped.get_user_action()
         else:
             action, quit = agent.act(state), env.unwrapped.get_user_quit()
-            action = Actions(action)._name_
 
         if quit:
             env.close()
