@@ -71,8 +71,7 @@ class Agent:
         display_name,
         train: bool,
         backend: "AgentBackend",
-        avatar_sprite_desc,
-        bomb_sprite_desc,
+        color: str,
         env_user: bool = False,
     ):
         self.backend = backend
@@ -82,7 +81,7 @@ class Agent:
         self.train = train
         self.env_user = env_user
         self.avatar, self.bomb_sprite, self.shade = self._prepare_avatar(
-            avatar_sprite_desc=avatar_sprite_desc, bomb_sprite_desc=bomb_sprite_desc
+            color=color
         )
         self.total_score = 0
         self.dead = None
@@ -99,21 +98,21 @@ class Agent:
         self.last_action = None
         self.setup()
 
-    def _prepare_avatar(self, avatar_sprite_desc, bomb_sprite_desc):
+    def _prepare_avatar(self, color):
         # Load custom avatar or standard robot avatar of assigned color
         try:
-            avatar = loadScaledAvatar(avatar_sprite_desc, expected_size=(30, 30))
+            avatar = loadScaledAvatar(s.ASSET_DIR / ".." / "envs" / "agent_code" / self.code_name / "avatar.png")
         except Exception:
-            avatar = loadScaledAvatar(s.ASSET_DIR / f"robot_{avatar_sprite_desc}.png")
+            avatar = loadScaledAvatar(s.ASSET_DIR / f"robot_{color}.png")
         # Load custom bomb sprite
         try:
-            bomb_sprite = loadScaledAvatar(bomb_sprite_desc, expected_size=(30, 30))
+            bomb = loadScaledAvatar(s.ASSET_DIR / ".." / "envs" / "agent_code" / self.code_name / "bomb.png")
         except Exception:
-            bomb_sprite = loadScaledAvatar(s.ASSET_DIR / f"bomb_{bomb_sprite_desc}.png")
+            bomb = loadScaledAvatar(s.ASSET_DIR / f"bomb_{color}.png")
         # Prepare overlay that will indicate dead agent on the scoreboard
         shade = pygame.Surface((30 * s.SCALE, 30 * s.SCALE), pygame.SRCALPHA)
         shade.fill((0, 0, 0, 208))
-        return (avatar, bomb_sprite, shade)
+        return (avatar, bomb, shade)
 
     def setup(self):
         # Call setup on backend

@@ -107,7 +107,7 @@ class GenericWorld:
 
         color = self.colors.pop()
         agent = Agent(
-            name, agent_dir, name, train, backend, color, color, env_user=env_user
+            name, agent_dir, name, train, backend, color=color, env_user=env_user
         )
         self.agents.append(agent)
 
