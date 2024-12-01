@@ -53,6 +53,20 @@ Student project to train and compete Reinforcement Learning Agents in a Bomberma
    python scripts/main.py -h
    ```
 
+## Versioning and Tags
+Each version is identified by a tag in the format:
+v*Major.Minor.Patch* with
+- *Major*: Exercise Sheet number
+- *Minor*: Feature additions
+- *Patch*: Bug Fixes
+
+See the [Changelog](./CHANGELOG.md) for which changes the tags refer to
+
+### Check out a specific version
+```bash
+$ git checkout <tag>
+```
+
 ## Develop
 This package provides
 - `src/`: bomberman *Environment* as Gymnasium environment
