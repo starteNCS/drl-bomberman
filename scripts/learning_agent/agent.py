@@ -1,10 +1,12 @@
-class RuleBaseAgent:
-    """
-    Stick to this interface to enable later competition.
-    (Demonstration only - do not inherit)
-    """
+from bomberman_rl import events as e
+
+# Custom events
+SCORE_INCREASED = "SCORE_INCREASED"
+
+class LearningAgent:
     def __init__(self):
         self.setup()
+        self.setup_training()
 
     def setup(self):
         """
@@ -19,16 +21,6 @@ class RuleBaseAgent:
         :param state: The state of the environment.
         """
         raise NotImplementedError()
-
-
-class RLAgent(RuleBaseAgent):
-    """
-    An agent that wants to learn can profit from further Callbacks.
-    (Demonstration only - do not inherit)
-    """
-    def __init__(self):
-        super().__init__()
-        self.setup_training()
 
     def setup_training(self):
         """
@@ -51,10 +43,34 @@ class RLAgent(RuleBaseAgent):
         :param new_state: New state of the environment.
         :param events: Events that occurred during step. These might be used for Reward Shaping.
         """
-        pass
+        custom_events = self._custom_events(old_state, new_state)
+        reward = self._shape_reward(events + custom_events)
 
     def end_of_round(self):
         """
         After episode ended (optional). Use this e.g. for model training and saving.
         """
         pass
+
+
+    def _custom_events(self, old_state, new_state):
+        """
+        Just an idea!
+        """
+        custom_events = []
+        if old_state["score"] < new_state["score"]:
+            custom_events.append(SCORE_INCREASED)
+        return custom_events
+
+    def _shape_reward(self, events: list[str]) -> float:
+        """
+        Just an idea!
+        """
+        reward_mapping = {
+            SCORE_INCREASED: 5,
+            e.MOVED_DOWN: .1,
+            e.MOVED_LEFT: .1,
+            e.MOVED_UP: .1,
+            e.MOVED_RIGHT: .1
+        }
+        return sum([reward_mapping.get(event, 0) for event in events])
