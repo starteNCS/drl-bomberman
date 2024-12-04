@@ -327,7 +327,7 @@ def play_qualification(args, competitors, n_competitor_pairings, pairing_cardina
 
 
 def play_final(args, competitors, demo):
-    scoreboard = match(args=args, agents=competitors, demo=demo)
+    scoreboard = match(args=args, competitors=competitors, demo=demo)
     return scoreboard
 
 
