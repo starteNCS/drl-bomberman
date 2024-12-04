@@ -106,7 +106,7 @@ def makeSingleEnv(
         obsWrapperKwargs=obsWrapperKwargs,
     )
     if args.video:
-        env = RecordVideo(env, video_folder=args.video, name_prefix=name_prefix)
+        env = RecordVideo(env, video_folder=args.video, name_prefix=name_prefix, episode_trigger=lambda _: True)
     return env
 
 
@@ -231,7 +231,7 @@ def recordMatchingDemo(args, scoreboard):
     env_demo.close()
 
 
-def match(args, competitors, n_episodes=10, n_envs=28, demo=False):
+def match(args, competitors, n_episodes=100, n_envs=28, demo=False):
     """Compete agents by running multiple episodes"""
     # return dict(zip(competitors, range(1, len(competitors) + 1)))
     args.learners = []
@@ -377,8 +377,8 @@ def tournament(competitors, pairing_cardinality=4, demo=False):
 
 
 if __name__ == "__main__":
-    #tournament(competitors=["assignment_session_1.eissa", "assignment_session_1.gehring_ferber_kohnen", "assignment_session_1.oehmen", "assignment_session_1.ahlers_dreiling"], demo=True)
-    env = makeSingleEnv(args=parse(None), name_prefix="test")
-    env, _, _ = makeEnvs(args=parse(None), n_envs=28)
-    model = DummyModel(env)
-    demo(model, env)
+    tournament(competitors=["assignment_session_1.hellmann", "assignment_session_1.gehring_ferber_kohnen", "assignment_session_1.oehmen", "assignment_session_1.ahlers_dreiling"], demo=True)
+    #env = makeSingleEnv(args=parse(None), name_prefix="test")
+    #env, _, _ = makeEnvs(args=parse(None), n_envs=28)
+    #model = DummyModel(env)
+    #demo(model, env)

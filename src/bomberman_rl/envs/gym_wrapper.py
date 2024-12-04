@@ -90,7 +90,6 @@ class BombermanEnvWrapper(gym.Env):
         return observation, info
 
     def step(self, action):
-        print("step in gym wrapper")
         self.delegate.do_step(action)
         terminated = not self.delegate.running
         reward = 0  # TODO reward from state infrastructure
