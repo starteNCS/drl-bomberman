@@ -1,5 +1,6 @@
 import math
 from random import randint
+import numpy as np
 import copy
 import heapq
 from sympy import primerange
@@ -12,6 +13,7 @@ from stable_baselines3 import PPO, A2C
 from stable_baselines3.common.logger import configure
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.vec_env import (
+    VecEnv,
     SubprocVecEnv,
     DummyVecEnv,
     VecVideoRecorder,
@@ -29,7 +31,7 @@ log_path = "scripts/logs/stable_baselines"
 
 def makeEnvs(
     args,
-    n_envs=5,
+    n_envs,
     vec_env_cls=SubprocVecEnv,
     name_prefix=None,
     wrapper=[],
@@ -134,19 +136,35 @@ def evaluate(model, env, n_episodes=10, deterministic=False):
 
 
 def demo(model, env, n_steps=100, deterministic=True):
-    obs, _ = env.reset()
+    if isinstance(env, VecEnv):
+        obs = env.reset()
+    else:
+        obs, _ = env.reset()
     terminated, truncated = False, False
     reward = 0
     for i in range(n_steps):
+        print(i)
         if not (terminated or truncated):
-            action, _state = model.predict(obs, deterministic=deterministic)
-            action = action.squeeze()
+            if isinstance(env, VecEnv):
+                action = model.predict(obs, deterministic=deterministic)
+            else:
+                action, _ = model.predict(obs, deterministic=deterministic)
+                action = action.squeeze()
             obs, r, terminated, truncated, _ = env.step(action)
+            print("okay im here")
             reward += r
     print(f"Demo reward: {reward}")
     env.close()
 
+class DummyModel():
+    def __init__(self, env):
+        if isinstance(env, VecEnv):
+            self.a = np.array([env.action_space.sample() for i in range(env.num_envs)])
+        self.a = env.action_space.sample()
 
+    def predict(self, *args, **kwargs):
+        return self.a, None
+    
 def collectEpisodeResults(dones, infos):
     """Return leaderboards from environments with just finished episode"""
     return [info["leaderboard"] for done, info in zip(dones, infos) if done]
@@ -327,7 +345,7 @@ def play_qualification(args, competitors, n_competitor_pairings, pairing_cardina
 
 
 def play_final(args, competitors, demo):
-    scoreboard = match(args=args, agents=competitors, demo=demo)
+    scoreboard = match(args=args, competitors=competitors, demo=demo)
     return scoreboard
 
 
@@ -359,4 +377,8 @@ def tournament(competitors, pairing_cardinality=4, demo=False):
 
 
 if __name__ == "__main__":
-    tournament(competitors=["rule_based_agent", "coin_collector_agent", "peaceful_agent", "random_agent"], demo=True)
+    #tournament(competitors=["assignment_session_1.eissa", "assignment_session_1.gehring_ferber_kohnen", "assignment_session_1.oehmen", "assignment_session_1.ahlers_dreiling"], demo=True)
+    env = makeSingleEnv(args=parse(None), name_prefix="test")
+    env, _, _ = makeEnvs(args=parse(None), n_envs=28)
+    model = DummyModel(env)
+    demo(model, env)
