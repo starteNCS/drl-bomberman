@@ -1,9 +1,12 @@
+from logging import Logger
+
 class RuleBaseAgent:
     """
     Stick to this interface to enable later competition.
     (Demonstration only - do not inherit)
     """
     def __init__(self):
+        self.logger = Logger("Agent")
         self.setup()
 
     def setup(self):
@@ -21,7 +24,7 @@ class RuleBaseAgent:
         raise NotImplementedError()
 
 
-class RLAgent(RuleBaseAgent):
+class Agent(RuleBaseAgent):
     """
     An agent that wants to learn can profit from further Callbacks.
     (Demonstration only - do not inherit)

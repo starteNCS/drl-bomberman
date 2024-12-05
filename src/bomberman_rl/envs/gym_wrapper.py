@@ -6,7 +6,7 @@ from gymnasium.spaces import Space, Discrete, MultiBinary, MultiDiscrete, Sequen
 from . import settings as s
 from .environment import GUI, BombeRLeWorld
 from .actions import ActionSpace, Actions
-from .state_space import observation_space, delegate2gym
+from .state_space import observation_space, legacy2gym
 from .items import loadScaledAvatar
 
 
@@ -71,7 +71,7 @@ class BombermanEnvWrapper(gym.Env):
 
     def _get_obs(self):
         obs = self.delegate.get_state_for_agent(self.delegate.agents[0]) # agent 0 is implicitly the exterior agent
-        return delegate2gym(obs)
+        return legacy2gym(obs)
 
     def _get_info(self):
         return {

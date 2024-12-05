@@ -13,7 +13,7 @@ import pygame
 from . import settings as s
 from . import events as e
 from .actions import Actions
-from .state_space import delegate2gym
+from .state_space import legacy2gym
 from .agents import Agent, SequentialAgentBackend
 from .items import Bomb, Coin, Explosion, loadScaledAvatar
 
@@ -463,7 +463,7 @@ class BombeRLeWorld(GenericWorld):
     def poll_and_run_agents(self, env_user_action):
         for a in self.active_agents:
             state = self.get_state_for_agent(a)
-            state = delegate2gym(state)
+            state = legacy2gym(state)
             a.store_game_state(state)
             a.reset_game_events()
             if a.available_think_time > 0:

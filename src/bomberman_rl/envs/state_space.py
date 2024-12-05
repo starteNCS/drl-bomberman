@@ -43,9 +43,9 @@ def observation_space():
     })
 
 
-def delegate2gym(state):
+def legacy2gym(state):
 
-    def _agent_delegate2gym(agent, pos):
+    def _agent_legacy2gym(agent, pos):
         return {
             "score": agent[1],
             "bombs_left": int(agent[2]),
@@ -78,25 +78,55 @@ def delegate2gym(state):
         positions = [pos for _, _, _, pos in state["others"]]
         opponents_pos[*zip(*positions)] = 1
 
-    self_info = _agent_delegate2gym(state["self"], self_pos)
+    self_info = _agent_legacy2gym(state["self"], self_pos)
     
     single_opponents_pos = []
     for _, _, _, pos in state["others"]:
         single_opponent_pos = np.zeros(state["field"].shape, dtype="int16")
         single_opponent_pos[*pos] = 1
         single_opponents_pos.append(single_opponent_pos)
-    opponents_info = tuple([_agent_delegate2gym(agent, pos) for agent, pos in zip(state["others"], single_opponents_pos)])
+    opponents_info = tuple([_agent_legacy2gym(agent, pos) for agent, pos in zip(state["others"], single_opponents_pos)])
+
+    return {
+            "round": state["round"],
+            "step": state["step"],
+            "walls": walls,
+            "crates": crates,
+            "coins": coins,
+            "bombs": bombs,
+            "explosions": state["explosion_map"],
+            "self_pos": self_pos,
+            "opponents_pos": opponents_pos,
+            "self_info": self_info,
+            "opponents_info": opponents_info
+        }
+
+
+def gym2legacy(state):
+    field = state["crates"].copy()
+    field[state["walls"] == 1] = -1
+
+    self_pos = list(zip(*np.where(state["self_pos"] == 1)))[0]
+    self_info = ("", state["self_info"]["score"], state["self_info"]["bombs_left"], self_pos)
+
+    opponents = []
+    for o in state["opponents_info"]:
+        o_pos = list(zip(*np.where(o["position"] == 1)))[0]
+        opponents.append(("", o["score"], o["bombs_left"], o_pos))
+
+    bombs = []
+    for x, y in zip(*np.nonzero(state["bombs"])):
+        bombs.append(((x, y), s.BOMB_TIMER - state["bombs"][x][y]))
+
+    coins = list(zip(*np.where(state["coins"] == 1)))
 
     return {
         "round": state["round"],
         "step": state["step"],
-        "walls": walls,
-        "crates": crates,
-        "coins": coins,
+        "field": field,
+        "self": self_info,
+        "others": opponents,
         "bombs": bombs,
-        "explosions": state["explosion_map"],
-        "self_pos": self_pos,
-        "opponents_pos": opponents_pos,
-        "self_info": self_info,
-        "opponents_info": opponents_info
+        "coins": coins,
+        "explosion_map": state["explosions"]
     }
