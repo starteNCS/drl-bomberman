@@ -1,11 +1,11 @@
 import numpy as np
 
 from ...actions import ActionSpace
-from ..interface import Agent as Base
+from ..interface import RuleBasedAgent
 
-class Agent(Base):
+class Agent(RuleBasedAgent):
     def setup(self):
         self.rng = np.random.default_rng()
 
-    def act(self, game_state: dict, **kwargs):
+    def act(self, *args, **kwargs):
         return ActionSpace.sample()

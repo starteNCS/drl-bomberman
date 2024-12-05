@@ -1,6 +1,6 @@
 from logging import Logger
 
-class RuleBaseAgent:
+class RuleBasedAgent:
     """
     Stick to this interface to enable later competition.
     (Demonstration only - do not inherit)
@@ -11,7 +11,7 @@ class RuleBaseAgent:
 
     def setup(self):
         """
-        Before episode. Use this to setup action related state that is required to act on the environment.
+        Before episode (optional). Use this to setup action related state that is required to act on the environment.
         """
         pass
 
@@ -24,9 +24,11 @@ class RuleBaseAgent:
         raise NotImplementedError()
 
 
-class Agent(RuleBaseAgent):
+class LearningAgent(RuleBasedAgent):
     """
-    An agent that wants to learn can profit from further Callbacks.
+    A learning agent (located within the environment package) profits from further callbacks.
+    If you manually operate on the environment, like from ``/scripts``, it is not strictly necessary to follow this interface.
+    However, the example training loop in main.py supports this interface by calling the respective callbacks.
     (Demonstration only - do not inherit)
     """
     def __init__(self):

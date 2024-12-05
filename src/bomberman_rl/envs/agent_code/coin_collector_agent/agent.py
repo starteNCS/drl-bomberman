@@ -3,10 +3,10 @@ import numpy as np
 
 from ...settings import BOMB_POWER
 from ...actions import Actions
-from ...state_space import gym2legacy
-from ..interface import Agent as Base
+from ...state_space import gym2legacy # Todo: rewrite agent to directly operate on environment observation interface (instead of the legacy interface)
+from ..interface import RuleBasedAgent
 
-class Agent(Base):
+class Agent(RuleBasedAgent):
 
     def setup(self):
         np.random.seed()

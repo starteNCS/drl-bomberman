@@ -1,9 +1,15 @@
-from bomberman_rl import events as e
+from bomberman_rl import LearningAgent, events as e
 
 # Custom events
 SCORE_INCREASED = "SCORE_INCREASED"
 
-class LearningAgent:
+class Agent(LearningAgent):
+    """
+    Sticking to the ``LearningAgent`` interface is optional.
+    It enables your agent to **learn** as proper part of the environment (``/src/bomberman_rl/envs/agent_code/<agent>``) in order to enable Self-Play.
+    The example training loop in main.py supports this interface as well by calling the respective callbacks.
+    (Demonstration only - do not inherit)
+    """
     def __init__(self):
         self.setup()
         self.setup_training()

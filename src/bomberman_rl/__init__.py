@@ -3,12 +3,11 @@ import pygame
 
 from .envs.gym_wrapper import BombermanEnvWrapper as Bomberman
 from .envs.environment import GUI
+from .envs.agent_code import *
 from .envs.actions import Actions, ActionSpace
 from .envs import settings
 from .envs import events
 from .wrappers import *
-
-__all__ = ["Bomberman", "Actions", "ActionSpace", "settings", "events"]
 
 pygame.init()
 register(

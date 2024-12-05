@@ -2,12 +2,17 @@ import time
 import gymnasium
 from gymnasium.wrappers import RecordVideo
 
-from bomberman_rl import settings as s, Actions, ScoreRewardWrapper, RestrictedKeysWrapper, FlattenWrapper
+from bomberman_rl import ScoreRewardWrapper, RestrictedKeysWrapper, FlattenWrapper
 
 from argparsing import parse
-from learning_agent.agent import LearningAgent
-from dummy_agent.agent import DummyAgent
+from learning_agent.agent import Agent as MyLearningAgent
 
+class DummyAgent:
+    def setup(self):
+        pass
+
+    def act(self, *args, **kwargs):
+        return None
 
 def loop(env, agent, args):
     state, info = env.reset()
@@ -47,7 +52,7 @@ def provideAgent(passive: bool):
     if passive:
         return DummyAgent()
     else:
-        agent = LearningAgent()
+        agent = MyLearningAgent()
         agent.setup()
         return agent
 
