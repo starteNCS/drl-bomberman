@@ -307,20 +307,7 @@ class GenericWorld:
         }
 
     def time_to_stop(self):
-        # Check round stopping criteria
-        if any(a.env_user for a in self.killed_agents):
-            self.logger.info("Env user dead, wrap up round")
-            return True
-
-        if len(self.active_agents) <= 1:
-            self.logger.info("All opponents dead")
-            return True
-
-        if self.step >= s.MAX_STEPS:
-            self.logger.info("Maximum number of steps reached, wrap up round")
-            return True
-
-        return False
+        raise NotImplementedError()
 
     def end(self):
         if self.running:
@@ -352,6 +339,7 @@ class BombeRLeWorld(GenericWorld):
     def __init__(self, args, agents):
         super().__init__(args)
         self.rng = np.random.default_rng(args.seed)
+        self.scenario_info = s.SCENARIOS[self.args.scenario]
         self.setup_agents(agents)
 
     def setup_agents(self, agents):
@@ -372,15 +360,16 @@ class BombeRLeWorld(GenericWorld):
             flag_opponent += 1
 
     def build_arena(self):
+        if self.scenario_info["TYPE"] != "BASIC":
+            return self.build_custom_arena()
+        
         WALL = -1
         FREE = 0
         CRATE = 1
         arena = np.zeros((s.COLS, s.ROWS), int)
 
-        scenario_info = s.SCENARIOS[self.args.scenario]
-
         # Crates in random locations
-        arena[self.rng.random((s.COLS, s.ROWS)) < scenario_info["CRATE_DENSITY"]] = (
+        arena[self.rng.random((s.COLS, s.ROWS)) < self.scenario_info["CRATE_DENSITY"]] = (
             CRATE
         )
 
@@ -414,7 +403,7 @@ class BombeRLeWorld(GenericWorld):
         crate_positions = self.rng.permutation(all_positions[arena == CRATE])
         free_positions = self.rng.permutation(all_positions[arena == FREE])
         coin_positions = np.concatenate([crate_positions, free_positions], 0)[
-            : scenario_info["COIN_COUNT"]
+            : self.scenario_info["COIN_COUNT"]
         ]
         for x, y in coin_positions:
             coins.append(Coin((x, y), collectable=arena[x, y] == FREE))
@@ -423,6 +412,48 @@ class BombeRLeWorld(GenericWorld):
         active_agents = []
         for agent, start_position in zip(
             self.agents, self.rng.permutation(start_positions)
+        ):
+            active_agents.append(agent)
+            agent.x, agent.y = start_position
+
+        return arena, coins, active_agents
+    
+
+    def build_custom_arena(self):
+        match self.scenario_info["TYPE"]:
+            case "SINGLE_COIN":
+                return self.build_single_coin_arena()
+            case _:
+                raise NotImplementedError(f"Scenario of type {self.scenario_info["TYPE"]} not implemented.")
+            
+    def build_single_coin_arena(self):
+        fixed = self.scenario_info["FIXED"]
+
+        WALL = -1
+        arena = np.zeros((s.COLS, s.ROWS), int)
+
+        # Walls
+        arena[:1, :] = WALL
+        arena[-1:, :] = WALL
+        arena[:, :1] = WALL
+        arena[:, -1:] = WALL
+
+        # Start positions
+        start_positions = list(set([
+            (1, 1),
+            (s.COLS - 2, 1),
+            (1, s.ROWS - 2),
+            (s.COLS - 2, s.ROWS - 2),
+        ]))
+        assert(len(self.agents)) < len(start_positions), f"This scenario supports only {len(start_positions) - 1} agents for altogether {len(start_positions)} available start positions"
+
+        if not fixed:
+            start_positions = list(self.rng.permutation(start_positions))
+
+        coins = [Coin(start_positions.pop(), collectable=True)]
+        active_agents = []
+        for agent, start_position in zip(
+            sorted(self.agents, key=lambda a: a.env_user, reverse=True), start_positions
         ):
             active_agents.append(agent)
             agent.x, agent.y = start_position
@@ -439,7 +470,7 @@ class BombeRLeWorld(GenericWorld):
             "field": np.array(self.arena),
             "self": agent.get_state(),
             "others": [
-                other.get_state() for other in self.agents if other is not agent#in self.active_agents if other is not agent
+                other.get_state() for other in self.agents if other is not agent # in self.active_agents if other is not agent
             ],
             "bombs": [bomb.get_state() for bomb in self.bombs],
             "coins": [coin.get_state() for coin in self.coins if coin.collectable],
@@ -534,6 +565,37 @@ class BombeRLeWorld(GenericWorld):
                         pass
                         # a.wait_for_enemy_game_event_processing()
 
+    def time_to_stop(self):
+        # Check round stopping criteria
+        if any(a.env_user for a in self.killed_agents):
+            self.logger.info("Env user dead, wrap up round")
+            return True
+
+        if not len(self.active_agents):
+            self.logger.info("No agent left")
+            return True
+        
+        if (
+            len(self.active_agents) == 1
+            and (self.arena == 1).sum() == 0
+            and all([not c.collectable for c in self.coins])
+            and len(self.bombs) + len(self.explosions) == 0
+        ):
+            self.logger.info("One agent left with nothing to do")
+            return True
+        
+        if (
+            self.scenario_info["TYPE"] == "SINGLE_COIN"
+            and (self.arena == 1).sum() == 0
+            and all([not c.collectable for c in self.coins])):
+            return True
+
+        if self.step >= s.MAX_STEPS:
+            self.logger.info("Maximum number of steps reached, wrap up round")
+            return True
+
+        return False
+    
     def end_round(self):
         super().end_round()
 

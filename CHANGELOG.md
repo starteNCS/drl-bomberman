@@ -1,10 +1,11 @@
-## [Unreleased]
+## [2.0.0]
 ### Added
 - run a tournament
+- single coin scenario, see ```settings.py```
 ### Changed
 - command line arguments:
     - e.g. add ```--passive``` mode
-    - for further changes, refer to ```--help```
+    - for further changes, see ```--help```
 - negative score for killing oneself
 ### Fixed
 - prevent PyGame window from rendering for render modes other than ```"human"```

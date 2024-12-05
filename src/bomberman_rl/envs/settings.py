@@ -6,15 +6,18 @@ import pygame
 # board size (a smaller board may be useful at the beginning)
 COLS = 17
 ROWS = 17
+
 SCENARIOS = {
-    # modes useful for agent development
-    "empty": {"CRATE_DENSITY": 0, "COIN_COUNT": 0},
-    "coin-heaven": {"CRATE_DENSITY": 0, "COIN_COUNT": 50},
-    "loot-crate": {"CRATE_DENSITY": 0.75, "COIN_COUNT": 50},
-    # this is the tournament game mode
-    "classic": {"CRATE_DENSITY": 0.75, "COIN_COUNT": 9},
-    # Feel free to add more game modes and properties
-    # game is created in environment.py -> BombeRLeWorld -> build_arena()
+    # official tournament scenario
+    "classic": {"TYPE": "BASIC", "CRATE_DENSITY": 0.75, "COIN_COUNT": 9},
+    # easier scenarios for Curriculum Learning (i.e. your agent learns easy tasks first)
+    "empty": {"TYPE": "BASIC", "CRATE_DENSITY": 0, "COIN_COUNT": 0},
+    "coin-heaven": {"TYPE": "BASIC", "CRATE_DENSITY": 0, "COIN_COUNT": 50},
+    "loot-crate": {"TYPE": "BASIC", "CRATE_DENSITY": 0.75, "COIN_COUNT": 50},
+    "single_coin_fixed": {"TYPE": "SINGLE_COIN", "FIXED": True},
+    "single_coin_rand": {"TYPE": "SINGLE_COIN", "FIXED": False},
+    # you might build on the available TYPES
+    # you might implement your own custom TYPES in: environment.py -> BombeRLeWorld -> build_arena()
 }
 MAX_AGENTS = 4
 
@@ -23,14 +26,14 @@ MAX_STEPS = 400
 
 
 # GUI properties
-RENDER_FPS = 12
+RENDER_FPS = 8
 SCALE = 1
 GRID_SIZE = 30 * SCALE
 WIDTH = 1000 * SCALE
 HEIGHT = 600 * SCALE
 GRID_OFFSET = [(HEIGHT - ROWS * GRID_SIZE) // 2] * 2
 
-ASSET_DIR = Path(__file__).parent.parent / "assets"  # TODO
+ASSET_DIR = Path(__file__).parent.parent / "assets"
 
 AGENT_COLORS = ["green", "blue", "pink", "yellow"]
 
