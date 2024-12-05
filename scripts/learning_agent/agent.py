@@ -14,12 +14,13 @@ class LearningAgent:
         """
         pass
 
-    def act(self, state: dict) -> int:
+    def act(self, state: dict, **kwargs) -> int:
         """
         Before step. Return action based on state.
 
         :param state: The state of the environment.
         """
+        return 1
         raise NotImplementedError()
 
     def setup_training(self):
@@ -58,8 +59,8 @@ class LearningAgent:
         Just an idea!
         """
         custom_events = []
-        if old_state["score"] < new_state["score"]:
-            custom_events.append(SCORE_INCREASED)
+#        if old_state["score"] < new_state["score"]:
+#            custom_events.append(SCORE_INCREASED)
         return custom_events
 
     def _shape_reward(self, events: list[str]) -> float:

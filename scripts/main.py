@@ -2,10 +2,10 @@ import time
 import gymnasium
 from gymnasium.wrappers import RecordVideo
 
-from bomberman_rl import settings as s, Actions, Bomberman
+from bomberman_rl import settings as s, Actions, ScoreRewardWrapper, RestrictedKeysWrapper, FlattenWrapper
 
 from argparsing import parse
-from random_agent.agent import RandomAgent
+from learning_agent.agent import LearningAgent
 from dummy_agent.agent import DummyAgent
 
 
@@ -43,23 +43,29 @@ def loop(env, agent, args):
     env.close()
 
 
-def provideAgent(env, passive: bool):
+def provideAgent(passive: bool):
     if passive:
         return DummyAgent()
     else:
-        agent = RandomAgent()
+        agent = LearningAgent()
         agent.setup()
         return agent
 
 def main(argv=None):
     args = parse(argv)
     env = gymnasium.make("bomberman_rl/bomberman-v0", args=args)
+
+    # Notice that you can not use wrappers in the tournament!
+    # However, you might wanna use this example interface to kickstart your experiments
+    env = RestrictedKeysWrapper(env, keys=["self_pos", "coins", "walls"])
+    env = FlattenWrapper(env)
+    env = ScoreRewardWrapper(env)
     if args.video:
         env = RecordVideo(env, video_folder=args.video, name_prefix=args.match_name)
 
-    agent = provideAgent(env, passive=args.passive)
+    agent = provideAgent(passive=args.passive)
     if agent is None and not args.passive:
-        raise AssertionError("Either provide an agent or run in passive mode by specifying --passive")
+        raise AssertionError("Either provide an agent or run in passive mode by providing the command line argument --passive")
     if args.train:
         agent.setup_training()
 

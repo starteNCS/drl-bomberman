@@ -5,9 +5,14 @@ from ..envs import settings as s
 from ..envs import events as e
 
 
-class ScoreReward(Wrapper):
+class ScoreRewardWrapper(Wrapper):
     """
-    This reward is mostly based on the actual score.
+    This example reward is mostly based on the actual score.
+
+    Note that you can not use this Gymnasium Wrapper Interface during the tournament!
+    (Because every agent must act on the same environment.)
+
+    You can use this to kickstart your learning experiments, though.
     """
 
     rewards = {
@@ -26,4 +31,3 @@ class ScoreReward(Wrapper):
         reward = reduce(lambda r, e: r + self.rewards.get(e, 0), info["events"], 0)
         self.current_state = new_state
         return new_state, reward, terminated, truncated, info
-        

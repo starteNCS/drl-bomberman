@@ -10,6 +10,7 @@
 - prevent PyGame window from rendering for render modes other than ```"human"```
 - action format: environment only accepts action inputs from proper action space (i.e. numbers)
 - enable custom avatars
+- index out of range during rendering of arenas that are not quadratic
 
 ## [v1.0.1]
 ### Fixed

@@ -6,6 +6,7 @@ from .envs.environment import GUI
 from .envs.actions import Actions, ActionSpace
 from .envs import settings
 from .envs import events
+from .wrappers import *
 
 __all__ = ["Bomberman", "Actions", "ActionSpace", "settings", "events"]
 
