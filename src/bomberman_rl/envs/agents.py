@@ -213,22 +213,26 @@ class AgentRunner:
         self.agent_name = agent_name
         self.code_name = code_name
         self.result_queue = result_queue
-        self.callbacks = importlib.import_module(
-            ".envs.agent_code." + self.code_name + ".callbacks",
+        self.agent = importlib.import_module(
+            ".envs.agent_code." + self.code_name + ".agent",
             "bomberman_rl"
-        )
-        if train:
-            self.train = importlib.import_module(
-                ".envs.agent_code." + self.code_name + ".train",
-                "bomberman_rl"
-            )
-        self.check_interface(train=train)
-        self.fake_self = SimpleNamespace()
-        self.fake_self.train = train
+        ).Agent()
+        # self.callbacks = importlib.import_module(
+        #     ".envs.agent_code." + self.code_name + ".callbacks",
+        #     "bomberman_rl"
+        # )
+        # if train:
+        #     self.train = importlib.import_module(
+        #         ".envs.agent_code." + self.code_name + ".train",
+        #         "bomberman_rl"
+        #     )
+        # self.check_interface(train=train)
+        # self.fake_self = SimpleNamespace()
+        # self.fake_self.train = train
         self.wlogger = logging.getLogger(self.agent_name + "_wrapper")
         self.wlogger.setLevel(s.LOG_AGENT_WRAPPER)
-        self.fake_self.logger = logging.getLogger(self.agent_name + "_code")
-        self.fake_self.logger.setLevel(s.LOG_AGENT_CODE)
+        # self.fake_self.logger = logging.getLogger(self.agent_name + "_code")
+        # self.fake_self.logger.setLevel(s.LOG_AGENT_CODE)
         log_dir = f"{log_dir}/{self.code_name}/"
         if not os.path.exists(log_dir):
             os.makedirs(log_dir)
@@ -239,7 +243,7 @@ class AgentRunner:
         )
         handler.setFormatter(formatter)
         self.wlogger.addHandler(handler)
-        self.fake_self.logger.addHandler(handler)
+        # self.fake_self.logger.addHandler(handler)
 
     def check_interface(self, train):
         """
@@ -263,18 +267,18 @@ class AgentRunner:
                     )
 
     def process_event(self, event_name, *event_args, **event_kwargs):
-        module_name = None
-        for module_candidate in AGENT_API:
-            if event_name in AGENT_API[module_candidate]:
-                module_name = module_candidate
-                break
-        if module_name is None:
-            raise ValueError(f"No information on event {event_name!r} is available")
-        module = getattr(self, module_name)
+        # module_name = None
+        # for module_candidate in AGENT_API:
+        #     if event_name in AGENT_API[module_candidate]:
+        #         module_name = module_candidate
+        #         break
+        # if module_name is None:
+        #     raise ValueError(f"No information on event {event_name!r} is available")
+        # module = getattr(self, module_name)
         try:
             self.wlogger.debug(f"Calling {event_name} on callback.")
             start_time = time()
-            event_result = getattr(module, event_name)(self.fake_self, *event_args, **event_kwargs)
+            event_result = getattr(self.agent, event_name)(*event_args, **event_kwargs)
             duration = time() - start_time
             self.wlogger.debug(
                 f"Got result from callback#{event_name} in {duration:.3f}s."

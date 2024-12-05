@@ -2,6 +2,7 @@ from gymnasium.envs.registration import register
 import pygame
 
 from .envs.gym_wrapper import BombermanEnvWrapper as Bomberman
+from .envs.environment import GUI
 from .envs.actions import Actions, ActionSpace
 from .envs import settings
 from .envs import events

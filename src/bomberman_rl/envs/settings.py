@@ -23,7 +23,7 @@ MAX_STEPS = 400
 
 
 # GUI properties
-RENDER_FPS = 4
+RENDER_FPS = 12
 SCALE = 1
 GRID_SIZE = 30 * SCALE
 WIDTH = 1000 * SCALE
@@ -40,7 +40,7 @@ BOMB_TIMER = 4
 EXPLOSION_TIMER = 2  # = 1 of bomb explosion + N of lingering around
 
 # Rules for agents
-TIMEOUT = 0.5
+TIMEOUT = 0.2
 TRAIN_TIMEOUT = float("inf")
 REWARD_KILL = 5
 REWARD_KILL_SELF = -5
