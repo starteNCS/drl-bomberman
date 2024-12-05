@@ -1,5 +1,7 @@
 from bomberman_rl import LearningAgent, events as e
 
+from .q_learning import Model
+
 # Custom events
 SCORE_INCREASED = "SCORE_INCREASED"
 
@@ -18,16 +20,15 @@ class Agent(LearningAgent):
         """
         Before episode. Use this to setup action related state that is required to act on the environment.
         """
-        pass
+        self.q_learning = Model()
 
-    def act(self, state: dict, **kwargs) -> int:
+    def act(self, state, **kwargs) -> int:
         """
         Before step. Return action based on state.
 
         :param state: The state of the environment.
         """
-        return 1
-        raise NotImplementedError()
+        return self.q_learning.act(state)[0].item()
 
     def setup_training(self):
         """
@@ -37,10 +38,10 @@ class Agent(LearningAgent):
 
     def game_events_occurred(
         self,
-        old_state: dict,
-        self_action: str,
-        new_state: dict,
-        events: list[str],
+        old_state,
+        self_action,
+        new_state,
+        events,
     ):
         """
         After step in environment (optional). Use this e.g. for model training.
@@ -52,32 +53,35 @@ class Agent(LearningAgent):
         """
         custom_events = self._custom_events(old_state, new_state)
         reward = self._shape_reward(events + custom_events)
+        self.q_learning.experience(old_state=old_state, action=self_action, new_state=new_state, reward=reward)
+        self.q_learning.optimize_incremental()
+
 
     def end_of_round(self):
         """
         After episode ended (optional). Use this e.g. for model training and saving.
         """
-        pass
+        self.q_learning.optimize_incremental()
+        self.q_learning.save_weights() # save model in case this was last round
 
 
     def _custom_events(self, old_state, new_state):
         """
-        Just an idea!
+        Just an idea to demonstrate that you are not solely bound to official events for reward shaping
         """
         custom_events = []
-#        if old_state["score"] < new_state["score"]:
-#            custom_events.append(SCORE_INCREASED)
+        if "score" in old_state and old_state["score"] < new_state["score"]:  # does not trigger due to current observation wrapper in main.py
+            custom_events.append(SCORE_INCREASED)
         return custom_events
 
     def _shape_reward(self, events: list[str]) -> float:
         """
-        Just an idea!
+        Shape rewards here instead of in an Environment Wrapper in order to be more flexible (e.g. use this agent as proper component of the environment where no environment wrappers are possible)
         """
         reward_mapping = {
-            SCORE_INCREASED: 5,
-            e.MOVED_DOWN: .1,
-            e.MOVED_LEFT: .1,
-            e.MOVED_UP: .1,
-            e.MOVED_RIGHT: .1
+            SCORE_INCREASED: 1, # does not trigger due to current observation wrapper in main.py
+            e.COIN_COLLECTED: 1,
+            e.GOT_KILLED: -1,
+            e.KILLED_SELF: -1
         }
         return sum([reward_mapping.get(event, 0) for event in events])

@@ -15,7 +15,7 @@ class RuleBasedAgent:
         """
         pass
 
-    def act(self, state: dict, **kwargs) -> int:
+    def act(self, state, **kwargs) -> int:
         """
         Before step. Return action based on state.
 
@@ -43,10 +43,10 @@ class LearningAgent(RuleBasedAgent):
 
     def game_events_occurred(
         self,
-        old_state: dict,
-        self_action: str,
-        new_state: dict,
-        events: list[str],
+        old_state,
+        self_action,
+        new_state,
+        events,
     ):
         """
         After step in environment (optional). Use this e.g. for model training.
