@@ -597,8 +597,8 @@ class GUI:
         self.frame += 1
 
         # World
-        for x in range(self.world.arena.shape[1]):
-            for y in range(self.world.arena.shape[0]):
+        for x in range(self.world.arena.shape[0]):
+            for y in range(self.world.arena.shape[1]):
                 if self.world.arena[x, y] == -1:
                     self.screen.blit(
                         self.t_wall,
