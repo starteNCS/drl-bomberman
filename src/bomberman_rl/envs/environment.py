@@ -362,9 +362,9 @@ class BombeRLeWorld(GenericWorld):
                     + str(list([a.code_name for a in self.agents]).count(agent_dir))
                 )
             else:
-                name = agent_dir
-            # Implicitly, first agent is controlled by env user
+                name = agent_dir.split(".")[-1]
             self.add_agent(agent_dir, name, train=train, env_user=not flag_opponent)
+            # Implicitly, first agent is controlled by env user
             flag_opponent += 1
 
     def build_arena(self):
@@ -477,6 +477,9 @@ class BombeRLeWorld(GenericWorld):
                     raise
                 except:
                     if not self.args.silence_errors:
+                        msg = f"Exception raised by Agent <{a.name}>. Agent set to passive for the rest of the episode."
+                        self.logger.error(msg)
+                        print(msg)
                         raise
                     # Agents with errors cannot continue
                     action = "ERROR"
