@@ -43,6 +43,7 @@ EXPLOSION_TIMER = 2  # = 1 of bomb explosion + N of lingering around
 TIMEOUT = 0.5
 TRAIN_TIMEOUT = float("inf")
 REWARD_KILL = 5
+REWARD_KILL_SELF = -5
 REWARD_COIN = 1
 
 # User input

@@ -260,6 +260,10 @@ class GenericWorld:
                         # Note who killed whom, adjust scores
                         if a is explosion.owner:
                             self.logger.info(f"Agent <{a.name}> blown up by own bomb")
+                            self.logger.info(
+                                f"Agent <{a.name}> loses {-s.REWARD_KILL_SELF} points"
+                            )
+                            a.update_score(s.REWARD_KILL_SELF)
                             a.add_event(e.KILLED_SELF)
                             explosion.owner.trophies.append(Trophy.suicide_trophy)
                         else:
@@ -267,7 +271,7 @@ class GenericWorld:
                                 f"Agent <{a.name}> blown up by agent <{explosion.owner.name}>'s bomb"
                             )
                             self.logger.info(
-                                f"Agent <{explosion.owner.name}> receives 1 point"
+                                f"Agent <{explosion.owner.name}> receives {s.REWARD_KILL} points"
                             )
                             explosion.owner.update_score(s.REWARD_KILL)
                             explosion.owner.add_event(e.KILLED_OPPONENT)

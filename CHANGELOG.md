@@ -5,6 +5,7 @@
 - command line arguments:
     - e.g. add ```--passive``` mode
     - for further changes, refer to ```--help```
+- negative score for killing oneself
 ### Fixed
 - prevent PyGame window from rendering for render modes other than ```"human"```
 - action format: environment only accepts action inputs from proper action space (i.e. numbers)
