@@ -1,4 +1,4 @@
-## [2.0.0]
+## [v2.0.0] Dec 6th
 ### Added
 - run a tournament
 - single coin scenario, see ```settings.py```
