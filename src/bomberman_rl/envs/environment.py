@@ -424,7 +424,7 @@ class BombeRLeWorld(GenericWorld):
             case "SINGLE_COIN":
                 return self.build_single_coin_arena()
             case _:
-                raise NotImplementedError(f"Scenario of type {self.scenario_info["TYPE"]} not implemented.")
+                raise NotImplementedError(f"Scenario of type {self.scenario_info['TYPE']} not implemented.")
             
     def build_single_coin_arena(self):
         fixed = self.scenario_info["FIXED"]
