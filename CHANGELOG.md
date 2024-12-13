@@ -1,4 +1,8 @@
-## [v2.0.0] Dec 6th
+## [v2.0.1]
+### Fixed
+- start position of ```single-coin``` scenarios
+
+# [v2.0.0] December 6, 2024
 ### Added
 - run a tournament
 - single coin scenario, see ```settings.py```
@@ -17,3 +21,6 @@
 ## [v1.0.1]
 ### Fixed
 - ```Coins``` observation was missing in ```README.md``` (credit to student for pointing out)
+
+
+# [v1.0.0] November 22, 2024
