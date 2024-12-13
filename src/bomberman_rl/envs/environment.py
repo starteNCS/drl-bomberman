@@ -125,11 +125,11 @@ class GenericWorld:
             action = Actions(action)._name_
         except ValueError:
             agent.add_event(e.INVALID_ACTION)
-        if action == "UP" and self.tile_is_free(agent.x, agent.y - 1):
-            agent.y -= 1
-            agent.add_event(e.MOVED_UP)
-        elif action == "DOWN" and self.tile_is_free(agent.x, agent.y + 1):
+        if action == "UP" and self.tile_is_free(agent.x, agent.y + 1):
             agent.y += 1
+            agent.add_event(e.MOVED_UP)
+        elif action == "DOWN" and self.tile_is_free(agent.x, agent.y - 1):
+            agent.y -= 1
             agent.add_event(e.MOVED_DOWN)
         elif action == "LEFT" and self.tile_is_free(agent.x - 1, agent.y):
             agent.x -= 1
@@ -678,7 +678,7 @@ class GUI:
                         self.t_wall,
                         (
                             s.GRID_OFFSET[0] + s.GRID_SIZE * x,
-                            s.GRID_OFFSET[1] + s.GRID_SIZE * y,
+                            s.GRID_OFFSET[1] + s.GRID_SIZE * (s.ROWS - y - 1),
                         ),
                     )
                 if self.world.arena[x, y] == 1:
@@ -686,7 +686,7 @@ class GUI:
                         self.t_crate,
                         (
                             s.GRID_OFFSET[0] + s.GRID_SIZE * x,
-                            s.GRID_OFFSET[1] + s.GRID_SIZE * y,
+                            s.GRID_OFFSET[1] + s.GRID_SIZE * (s.ROWS - y - 1),
                         ),
                     )
         self.render_text(
@@ -704,14 +704,14 @@ class GUI:
             bomb.render(
                 self.screen,
                 s.GRID_OFFSET[0] + s.GRID_SIZE * bomb.x,
-                s.GRID_OFFSET[1] + s.GRID_SIZE * bomb.y,
+                s.GRID_OFFSET[1] + s.GRID_SIZE * (s.ROWS - bomb.y - 1),
             )
         for coin in self.world.coins:
             if coin.collectable:
                 coin.render(
                     self.screen,
                     s.GRID_OFFSET[0] + s.GRID_SIZE * coin.x,
-                    s.GRID_OFFSET[1] + s.GRID_SIZE * coin.y,
+                    s.GRID_OFFSET[1] + s.GRID_SIZE * (s.ROWS - coin.y - 1),
                 )
 
         # Agents
@@ -719,7 +719,7 @@ class GUI:
             agent.render(
                 self.screen,
                 s.GRID_OFFSET[0] + s.GRID_SIZE * agent.x,
-                s.GRID_OFFSET[1] + s.GRID_SIZE * agent.y,
+                s.GRID_OFFSET[1] + s.GRID_SIZE * (s.ROWS - agent.y - 1),
             )
 
         # Explosions
@@ -727,7 +727,7 @@ class GUI:
             explosion.render(
                 self.screen,
                 s.GRID_OFFSET[0] + s.GRID_SIZE * explosion.x,
-                s.GRID_OFFSET[1] + s.GRID_SIZE * explosion.y,
+                s.GRID_OFFSET[1] + s.GRID_SIZE * (s.ROWS - explosion.y - 1),
             )
 
         # Scores
