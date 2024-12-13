@@ -5,7 +5,7 @@ from gymnasium.wrappers import RecordVideo
 from bomberman_rl import ScoreRewardWrapper, RestrictedKeysWrapper, FlattenWrapper
 
 from argparsing import parse
-from learning_agent.agent import Agent
+from rule_based_agent.agent import Agent
 
 class DummyAgent:
     def setup(self):
@@ -62,8 +62,8 @@ def main(argv=None):
     # Notice that you can not use wrappers in the tournament!
     # However, you might wanna use this example interface to kickstart your experiments
     env = ScoreRewardWrapper(env)
-    env = RestrictedKeysWrapper(env, keys=["self_pos"])
-    env = FlattenWrapper(env)
+    #env = RestrictedKeysWrapper(env, keys=["self_pos"])
+    #env = FlattenWrapper(env)
     if args.video:
         env = RecordVideo(env, video_folder=args.video, name_prefix=args.match_name)
 

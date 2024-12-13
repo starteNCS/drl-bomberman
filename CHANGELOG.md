@@ -1,6 +1,8 @@
 ## [v2.0.1]
 ### Fixed
+- clean entry point (main loop)
 - start position of ```single-coin``` scenarios
+- custom arena error handling
 
 # [v2.0.0] December 6, 2024
 ### Added

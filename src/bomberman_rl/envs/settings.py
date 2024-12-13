@@ -4,8 +4,8 @@ import pygame
 
 # Game properties
 # board size (a smaller board may be useful at the beginning)
-COLS = 10
-ROWS = 3
+COLS = 17
+ROWS = 17
 
 SCENARIOS = {
     # official tournament scenario
