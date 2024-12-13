@@ -439,18 +439,21 @@ class BombeRLeWorld(GenericWorld):
         arena[:, -1:] = WALL
 
         # Start positions
-        start_positions = list(set([
+        start_positions = [
             (1, 1),
+            (s.COLS - 2, s.ROWS - 2)
+        ]
+        if s.COLS > 3 and s.ROWS > 3:
+            start_positions.extend([
             (s.COLS - 2, 1),
             (1, s.ROWS - 2),
-            (s.COLS - 2, s.ROWS - 2),
-        ]))
+        ])
         assert(len(self.agents)) < len(start_positions), f"This scenario supports only {len(start_positions) - 1} agents for altogether {len(start_positions)} available start positions"
 
         if not fixed:
             start_positions = list(self.rng.permutation(start_positions))
 
-        coins = [Coin(start_positions.pop(), collectable=True)]
+        coins = [Coin(start_positions.pop(0), collectable=True)]
         active_agents = []
         for agent, start_position in zip(
             sorted(self.agents, key=lambda a: a.env_user, reverse=True), start_positions
