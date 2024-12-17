@@ -1,3 +1,8 @@
+
+## [v2.1.0]
+### Changed
+- change coordinate center from Top-Left to Bottom-Left: this switches the effect of the ```UP``` and ```DOWN``` actions
+
 ## [v2.0.1]
 ### Fixed
 - clean entry point (main loop)
