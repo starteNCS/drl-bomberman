@@ -1,7 +1,11 @@
 
 ## [v2.2.0]
 ### Changed
-- add curriculum scenarios
+- add curriculum scenarios 
+   ```bash
+   python scripts/main.py --players --train --scenario curriculum-coin
+   python scripts/main.py --players --train --scenario curriculum-crate
+   ```
 
 ## [v2.1.0]
 ### Changed
