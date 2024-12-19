@@ -16,6 +16,8 @@ SCENARIOS = {
     "loot-crate": {"TYPE": "BASIC", "CRATE_DENSITY": 0.75, "COIN_COUNT": 50},
     "single-coin-fixed": {"TYPE": "SINGLE_COIN", "FIXED": True},
     "single-coin-rand": {"TYPE": "SINGLE_COIN", "FIXED": False},
+    "curriculum-coin": {"TYPE": "CURRICULUM", "CRATE": False},
+    "curriculum-crate": {"TYPE": "CURRICULUM", "CRATE": True},
     # you might build on the available TYPES
     # you might implement your own custom TYPES in: environment.py -> BombeRLeWorld -> build_arena()
 }
