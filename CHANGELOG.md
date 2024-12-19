@@ -1,4 +1,8 @@
 
+## [v2.2.0]
+### Changed
+- add curriculum scenarios
+
 ## [v2.1.0]
 ### Changed
 - change coordinate center from Top-Left to Bottom-Left: this switches the effect of the ```UP``` and ```DOWN``` actions
