@@ -6,6 +6,9 @@ from bomberman_rl import ScoreRewardWrapper, RestrictedKeysWrapper, FlattenWrapp
 
 from argparsing import parse
 from rule_based_agent.agent import Agent
+from q_learning.agent import QLearningAgent
+from learning_agent.agent import LearningAgent
+
 
 class DummyAgent:
     def setup(self):
@@ -62,7 +65,7 @@ def provideAgent(passive: bool):
         return DummyAgent()
     else:
         # agent = Agent()
-        agent = DummyAgent()
+        agent = QLearningAgent()
         return agent
 
 def main(argv=None):
@@ -74,7 +77,7 @@ def main(argv=None):
     env = ScoreRewardWrapper(env)
     env = TimePenaltyRewardWrapper(env, penalty=.1)
     #env = RestrictedKeysWrapper(env, keys=["self_pos"])
-    #env = FlattenWrapper(env)
+    # env = FlattenWrapper(env)
     if args.video:
         env = RecordVideo(env, video_folder=args.video, name_prefix=args.match_name)
 

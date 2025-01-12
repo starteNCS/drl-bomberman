@@ -5,7 +5,7 @@ from .q_learning import Model
 # Custom events
 SCORE_INCREASED = "SCORE_INCREASED"
 
-class Agent(LearningAgent):
+class LearningAgent(LearningAgent):
     """
     Sticking to the ``LearningAgent`` interface is optional.
     It enables your agent to **learn** as proper part of the environment (``/src/bomberman_rl/envs/agent_code/<agent>``) in order to enable Self-Play.
@@ -28,6 +28,7 @@ class Agent(LearningAgent):
 
         :param state: The state of the environment.
         """
+        print(state)
         return self.q_learning.act(state)[0].item()
 
     def setup_training(self):

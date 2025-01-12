@@ -1,0 +1,33 @@
+{
+    'round': 1,
+    'step': 0,
+    'walls': array(17x17 1 oder 0),
+    'crates': array(17x17 1 oder 0),
+    'coins': array(17x17 1 oder 0),
+    'bombs': array(17x17 1 oder 0),
+    'explosions': array(17x17 1 oder 0),
+    'self_pos': array(17x17 1 oder 0),
+    'opponents_pos': array(17x17 1 oder 0),
+    'self_info': {'
+        score': 0,
+        'bombs_left': 1,
+        'position': array(17x17 1 oder 0)
+    },
+    'opponents_info': [
+        {
+            'score': 0,
+            'bombs_left': 1,
+            'position': array(17x17 1 oder 0)
+        },
+        {
+            'score': 0,
+            'bombs_left': 1,
+            'position': array(17x17 1 oder 0)
+        },
+        {
+            'score': 0,
+            'bombs_left': 1,
+             'position': array(17x17 1 oder 0)
+        }
+    ]
+}
