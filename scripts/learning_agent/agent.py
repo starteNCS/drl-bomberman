@@ -28,7 +28,6 @@ class LearningAgent(LearningAgent):
 
         :param state: The state of the environment.
         """
-        print(state)
         return self.q_learning.act(state)[0].item()
 
     def setup_training(self):

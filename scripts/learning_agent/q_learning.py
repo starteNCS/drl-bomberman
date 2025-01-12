@@ -148,10 +148,10 @@ class Model():
         # state value or 0 in case the state was final.
         next_state_values = torch.zeros(state_batch.shape[0], device=device)
         with torch.no_grad():
-            next_state_values[non_final_mask] = self.target_net(non_final_next_states).max(1).values # max Q values of next state
+            next_state_values[non_final_mask] = self.target_net(non_final_next_states).max(1).values  # max Q values of next state
 
         # Compute the optimal Q values
-        expected_state_action_values = (next_state_values * self.gamma) + reward_batch # Bellman optimality equation
+        expected_state_action_values = (next_state_values * self.gamma) + reward_batch  # Bellman optimality equation
 
         # Compute Huber loss
         criterion = nn.SmoothL1Loss()
