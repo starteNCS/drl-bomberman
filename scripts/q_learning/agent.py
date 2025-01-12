@@ -18,7 +18,6 @@ class QLearningAgent(LearningAgent):
         self.gamma = None
         self.learning_rate = None
         self.q_net = None
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.setup_training()
 
     def setup(self):
@@ -64,6 +63,9 @@ class DQN(nn.Module):
             nn.Linear(512, ActionSpace.n),
         )
 
+        self.device = self.choose_device()
+        print("Using device: {}".format(self.device))
+
     def forward(self, in_tensor):
         """
         "Runs the neural network"
@@ -89,10 +91,6 @@ class DQN(nn.Module):
             # Greedy action (exploitation)
             state_tensor = self.state_to_tensor(state)
             state_tensor = state_tensor.unsqueeze(0)
-            if torch.cuda.is_available():
-                state_tensor = state_tensor.cuda()
-            else:
-                state_tensor = state_tensor.cpu()
 
             q_values = self.forward(state_tensor)
             action = q_values.argmax(dim=1).item()
@@ -140,8 +138,28 @@ class DQN(nn.Module):
         if tensor.shape[0] != DQN.INPUT_SIZE:
             raise AssertionError("Tensor shape of state does not match the excepted shape of 1x{}, found {}".format(DQN.INPUT_SIZE, tensor.shape))
 
+        tensor.to(device=self.device)
         return tensor.float()
 
 
-    def map_tensor(self, tensor_base, tensor_add, id):
+    @staticmethod
+    def map_tensor(tensor_base, tensor_add, id):
+        """
+        Maps the 'tensor_add' onto the 'tensor_base' with a shift in its value to the id
+
+        :param tensor_base: The tensor base
+        :param tensor_add: The tensor add
+        :param id: The id for the type that is added
+        :return: The mapped tensor
+        """
         return tensor_base + (tensor_add * id)
+
+
+    @staticmethod
+    def choose_device():
+        if torch.cuda.is_available():
+            return "cuda"
+        elif torch.mps.is_available():
+            return "mps"
+
+        return "cpu"
