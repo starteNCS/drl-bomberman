@@ -56,21 +56,28 @@ class DQN(nn.Module):
 
     def __init__(self):
         super(DQN, self).__init__()
-        self.layer1 = nn.Linear(DQN.INPUT_SIZE, 64)
-        self.layer2 = nn.Linear(64, 64)
-        self.layer3 = nn.Linear(64, ActionSpace.n)
+        self.layers = nn.Sequential(
+            nn.Linear(self.INPUT_SIZE, 512),
+            nn.ReLU(),
+            nn.Linear(512, 512),
+            nn.ReLU(),
+            nn.Linear(512, ActionSpace.n),
+        )
 
-    def forward(self, x):
-        """ Expects flattened state vector """
-        x = F.relu(self.layer1(x))
-        x = F.relu(self.layer2(x))
-        return self.layer3(x)
+    def forward(self, in_tensor):
+        """
+        "Runs the neural network"
+        Expects the input to be 1xINPUT_SIZE
+
+        :param in_tensor: The tensor for the input
+        :return: The output of the neural network (q values for this state, is of shape 1xActionSpace.n).
+        """
+        return self.layers(in_tensor)
 
     def get_action(self, state):
         """
         Select an action using a greedy policy, sometimes.
-        :param state: Current state (numpy array or tensor).
-        :param action_space: Action space of the environment for random actions.
+        :param state: Current state (dict, observation space).
         :return: Selected action.
         """
         # TODO@JONATHAN: hier ne bessere epsilon decay funktion finden
@@ -93,6 +100,25 @@ class DQN(nn.Module):
         return action
 
     def state_to_tensor(self, state):
+        """
+        Transforms the dict state into a tensor, that can be used by the neural network
+        Each field of the map gets its own "state". The "id" (value in this field) denotes what is happening on the field
+
+        Afterward the tensor is flattened into a one dimensional tensor, to conform with the input to the network
+
+        Ids:
+            1: WALLS
+            2: CRATES
+            3: COINS
+            4: BOMBS
+            5: EXPLOSIONS
+            6: SELF_POS
+            7: OPPONENT_POS
+
+
+        :param state: Current state
+        :return: 1xINPUT_SIZE tensor, where len-2 is score and len-1 is bombs_left
+        """
         base_tensor = torch.from_numpy(np.array(state["walls"]))
         base_tensor = self.map_tensor(base_tensor, torch.from_numpy(np.array(state["crates"])), 2)
         base_tensor = self.map_tensor(base_tensor, torch.from_numpy(np.array(state["coins"])), 3)
