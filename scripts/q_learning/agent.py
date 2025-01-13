@@ -20,7 +20,7 @@ class QLearningAgent(LearningAgent):
         super().__init__()
         self.visualization: {} = None
         self.gamma: float = 0.99
-        self.learning_rate: float = 0.05
+        self.learning_rate: float = 0.001
 
         self.q_net: DQN = None
         self.replay_buffer: ReplayBuffer = None
@@ -55,9 +55,11 @@ class QLearningAgent(LearningAgent):
         if self.trainer is None:
             self.trainer = Trainer(self.q_net, self.replay_buffer)
 
-        loss = self.trainer.optimize_replay(old_state, self_action, new_state, step_reward)
+        self.trainer.optimize(old_state, self_action, new_state, step_reward)
 
-        self.visualization["dqn_episode_losses"].append(loss)
+        # if new_state != old_state:
+        #     self.trainer.replay_buffer.push(old_state, self_action, new_state, step_reward)
+        # self.trainer.optimize_replay()
 
         pass
 
@@ -70,13 +72,11 @@ class QLearningAgent(LearningAgent):
         self.visualization["dqn_episode_reward"] = 0
         self.visualization["dqn_episode_steps"] = 0
         current_episode = self.visualization["dqn_episode_number"]
-        self.visualization["dqn_total_mean_losses"].append(np.mean(self.visualization["dqn_episode_losses"]))
-        self.visualization["dqn_episode_losses"] = []
         self.visualization["dqn_episode_number"] = self.visualization["dqn_episode_number"] + 1
 
         self.plot_dqn_learning()
 
-        if current_episode % 1000 == 1:
+        if current_episode % 1000 == 0:
             self.q_net.save_network(f"episode_{self.visualization["dqn_episode_number"]}")
             print(f"Saved network to disk at episode {self.visualization['dqn_episode_number']}")
 
@@ -84,16 +84,13 @@ class QLearningAgent(LearningAgent):
         self.visualization = {
             "dqn_total_rewards": [],
             "dqn_total_env_steps": [],
-            "dqn_total_mean_losses": [],
             "dqn_episode_reward": 0,
             "dqn_episode_steps": 0,
-            "dqn_episode_losses": [],
             "dqn_episode_number": 1
         }
 
     def plot_dqn_learning(self):
         rewards = self.visualization["dqn_total_rewards"]
-        loss = self.visualization["dqn_total_mean_losses"]
         episode_number = self.visualization["dqn_episode_number"]
 
         if episode_number % 50 == 0:
@@ -105,8 +102,7 @@ class QLearningAgent(LearningAgent):
 
         plt.figure(figsize=(12, 6))
         plt.title('Environment Steps: %s. - Reward: %s' % (episode_number, np.mean(rewards[-10:])))
-        plt.plot(rewards[::25], label="Rewards")
-        # plt.plot(loss, label="Average loss of episode")
+        plt.plot(rewards, label="Rewards")
         plt.xlabel("Environment Steps")
         plt.ylabel("Rewards")
         plt.legend()

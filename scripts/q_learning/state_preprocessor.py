@@ -37,7 +37,7 @@ class StatePreprocessor:
     V2_SIZE = 3 + 4 * 7 + 3
 
     @staticmethod
-    def process_v2(state) -> Tensor | None:
+    def process_v2(state: dict) -> Tensor | None:
         """
         same as process_v1, but using one-hot encoding
         """
