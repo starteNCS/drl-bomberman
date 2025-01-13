@@ -1,3 +1,4 @@
+from bomberman_rl.envs.actions import Actions
 from bomberman_rl.envs.agent_code import LearningAgent
 import bomberman_rl.envs.events as ev
 import numpy as np
@@ -9,6 +10,7 @@ import matplotlib.pyplot as plt
 from io import BytesIO
 
 from scripts.q_learning.deep_q_network import DQN
+from scripts.q_learning.replay_buffer import ReplayBuffer
 from scripts.q_learning.trainer import Trainer
 
 
@@ -21,12 +23,13 @@ class QLearningAgent(LearningAgent):
         self.learning_rate: float = 0.05
 
         self.q_net: DQN = None
+        self.replay_buffer: ReplayBuffer = None
         self.trainer: Trainer = None
 
     def setup(self):
         pass
 
-    def act(self, state):
+    def act(self, state, **kwargs):
         return self.q_net.get_action(state)
 
     def setup_training(self):
@@ -34,20 +37,25 @@ class QLearningAgent(LearningAgent):
         self.learning_rate: float = 0.001
         self.q_net = DQN(self.gamma, self.learning_rate)
         self.q_net.train()
+        self.replay_buffer = ReplayBuffer(10_000)
+
         self.reset_visualization()
 
     def game_events_occurred(self, old_state, self_action, new_state, events):
-        if old_state is None or new_state is None:
-            return
+        if new_state is None:
+            new_state = old_state
 
         step_reward = QLearningAgent.calculate_reward(events)
+
         self.visualization["dqn_episode_reward"] += step_reward
         self.visualization["dqn_episode_steps"] += 1
 
-        if self.trainer is None:
-            self.trainer = Trainer(self.q_net)
+        # print(f"Action selected: {Actions(self_action)}, reward: ({step_reward} / {self.visualization['dqn_episode_reward']}), event: {events}")
 
-        loss = self.trainer.optimize(old_state, self_action, new_state, step_reward)
+        if self.trainer is None:
+            self.trainer = Trainer(self.q_net, self.replay_buffer)
+
+        loss = self.trainer.optimize_replay(old_state, self_action, new_state, step_reward)
 
         self.visualization["dqn_episode_losses"].append(loss)
 
@@ -61,39 +69,42 @@ class QLearningAgent(LearningAgent):
         self.visualization["dqn_total_env_steps"].append(self.visualization["dqn_episode_steps"])
         self.visualization["dqn_episode_reward"] = 0
         self.visualization["dqn_episode_steps"] = 0
-        current_episode = self.visualization["dqn_total_episode_number"]
-        self.visualization["dqn_total_episode_number"].append(1 if len(current_episode) == 0 else current_episode[-1] + 1)
+        current_episode = self.visualization["dqn_episode_number"]
         self.visualization["dqn_total_mean_losses"].append(np.mean(self.visualization["dqn_episode_losses"]))
         self.visualization["dqn_episode_losses"] = []
-
-        print(f"completed episode {current_episode[-1]}")
+        self.visualization["dqn_episode_number"] = self.visualization["dqn_episode_number"] + 1
 
         self.plot_dqn_learning()
+
+        if current_episode % 1000 == 1:
+            self.q_net.save_network(f"episode_{self.visualization["dqn_episode_number"]}")
+            print(f"Saved network to disk at episode {self.visualization['dqn_episode_number']}")
 
     def reset_visualization(self):
         self.visualization = {
             "dqn_total_rewards": [],
             "dqn_total_env_steps": [],
-            "dqn_total_episode_number": [],  # used to display time correctly in plot
             "dqn_total_mean_losses": [],
             "dqn_episode_reward": 0,
             "dqn_episode_steps": 0,
-            "dqn_episode_losses": []
+            "dqn_episode_losses": [],
+            "dqn_episode_number": 1
         }
 
     def plot_dqn_learning(self):
-        steps = self.visualization["dqn_total_episode_number"]
         rewards = self.visualization["dqn_total_rewards"]
         loss = self.visualization["dqn_total_mean_losses"]
+        episode_number = self.visualization["dqn_episode_number"]
 
-        if len(steps) % 500 == 0:
-            print(f"Episode {len(steps)} completed")
+        if episode_number % 50 == 0:
+            print(f"Episode {episode_number} completed")
+            print(f"Replay buffer size: {len(self.replay_buffer)}")
 
-        if len(steps) % 100 != 0:
+        if episode_number % 100 != 0:
             return
 
         plt.figure(figsize=(12, 6))
-        plt.title('Environment Steps: %s. - Reward: %s' % (steps[-1], np.mean(rewards[-10:])))
+        plt.title('Environment Steps: %s. - Reward: %s' % (episode_number, np.mean(rewards[-10:])))
         plt.plot(rewards[::25], label="Rewards")
         # plt.plot(loss, label="Average loss of episode")
         plt.xlabel("Environment Steps")
@@ -128,15 +139,15 @@ class QLearningAgent(LearningAgent):
             ev.BOMB_DROPPED: -1.,
             ev.BOMB_EXPLODED: 0.,
 
-            ev.CRATE_DESTROYED: 0.,
-            ev.COIN_FOUND: 0.,
+            ev.CRATE_DESTROYED: 5.,
+            ev.COIN_FOUND: 25.,
             ev.COIN_COLLECTED: 100.,
 
             ev.KILLED_OPPONENT: 500.,
-            ev.KILLED_SELF: 0.,
+            ev.KILLED_SELF: -350.,
 
-            ev.GOT_KILLED: -700.,
-            ev.OPPONENT_ELIMINATED: 0.,
+            ev.GOT_KILLED: -350.,
+            ev.OPPONENT_ELIMINATED: 0.,  # somebody killed somebody, not really of importance here
             ev.SURVIVED_ROUND: 0.
         }
 

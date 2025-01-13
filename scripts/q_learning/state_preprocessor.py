@@ -1,4 +1,6 @@
 import enum
+import heapq
+from collections import deque
 
 import numpy as np
 
@@ -25,7 +27,6 @@ class StatePreprocessor:
         EXPLOSION = 32
         OPPONENT = 64
 
-
     DIRECTIONS = [
         Position(0, 1),  # Up
         Position(0, -1),  # Down
@@ -33,12 +34,17 @@ class StatePreprocessor:
         Position(0, 1),  # Right
     ]
 
+    V2_SIZE = 3 + 4 * 7 + 3
+
     @staticmethod
-    def process_v1(state) -> Tensor | None:
+    def process_v2(state) -> Tensor | None:
+        """
+        same as process_v1, but using one-hot encoding
+        """
         if state is None:
             return None
 
-        input_tensor = torch.zeros(13, dtype=torch.float)
+        input_tensor = torch.zeros(StatePreprocessor.V2_SIZE, dtype=torch.float)
 
         self_pos_matrix = np.array(state["self_pos"])
         player_pos_y_list, player_pos_x_list = np.where(self_pos_matrix == 1)
@@ -46,7 +52,74 @@ class StatePreprocessor:
         input_tensor[0] = player_pos.x
         input_tensor[1] = player_pos.y
 
-        input_tensor_counter = 2
+        input_tensor[2] = state["bombs"][player_pos.y][player_pos.x]
+
+        input_tensor_counter = 3
+
+        # order is given in DIRECTIONS array, up -> down -> left -> right, just like the input tensor
+        for direction in StatePreprocessor.DIRECTIONS:
+            distance = 1
+            current_see_pos = player_pos + direction
+
+            while True:
+                wall = StatePreprocessor.check_position_in_matrix(state["walls"], current_see_pos)
+                if wall:
+                    input_tensor, input_tensor_counter = StatePreprocessor.set_direction_information_in_tensor(input_tensor, input_tensor_counter, StatePreprocessor.MapElements.WALL, distance)
+                    break
+
+                crate = StatePreprocessor.check_position_in_matrix(state["crates"], current_see_pos)
+                if crate:
+                    input_tensor, input_tensor_counter = StatePreprocessor.set_direction_information_in_tensor(input_tensor, input_tensor_counter, StatePreprocessor.MapElements.CRATE, distance)
+                    break
+
+                coin = StatePreprocessor.check_position_in_matrix(state["coins"], current_see_pos)
+                if coin:
+                    input_tensor, input_tensor_counter = StatePreprocessor.set_direction_information_in_tensor(input_tensor, input_tensor_counter, StatePreprocessor.MapElements.COIN, distance)
+                    break
+
+                bomb = StatePreprocessor.check_position_in_matrix(state["bombs"], current_see_pos)
+                if bomb:
+                    input_tensor, input_tensor_counter = StatePreprocessor.set_direction_information_in_tensor(input_tensor, input_tensor_counter, StatePreprocessor.MapElements.BOMB, distance)
+                    break
+
+                explosion = StatePreprocessor.check_position_in_matrix(state["explosions"], current_see_pos)
+                if explosion:
+                    input_tensor, input_tensor_counter = StatePreprocessor.set_direction_information_in_tensor(input_tensor, input_tensor_counter, StatePreprocessor.MapElements.EXPLOSION, distance)
+                    break
+
+                opponent = StatePreprocessor.check_position_in_matrix(state["opponents_pos"], current_see_pos)
+                if opponent:
+                    input_tensor, input_tensor_counter = StatePreprocessor.set_direction_information_in_tensor(input_tensor, input_tensor_counter, StatePreprocessor.MapElements.OPPONENT, distance)
+                    break
+
+                current_see_pos = current_see_pos + direction
+                distance = distance + 1
+
+        input_tensor[input_tensor_counter] = state["self_info"]["bombs_left"]
+        input_tensor_counter = input_tensor_counter + 1
+        input_tensor[input_tensor_counter] = state["self_info"]["score"]
+        input_tensor_counter = input_tensor_counter + 1
+        input_tensor[input_tensor_counter] = len(state["opponents_info"])
+
+        return input_tensor
+
+    @staticmethod
+    def process_v1(state) -> Tensor | None:
+        if state is None:
+            return None
+
+        input_tensor = torch.zeros(14, dtype=torch.float)
+
+        self_pos_matrix = np.array(state["self_pos"])
+        player_pos_y_list, player_pos_x_list = np.where(self_pos_matrix == 1)
+        player_pos = Position(player_pos_x_list[0], player_pos_y_list[0])
+        input_tensor[0] = player_pos.x
+        input_tensor[1] = player_pos.y
+
+        input_tensor[2] = state["bombs"][player_pos.y][player_pos.x]
+        print(f"Is bomb on player pos: {state["bombs"][player_pos.y][player_pos.x] == 1}")
+
+        input_tensor_counter = 3
 
         # order is given in DIRECTIONS array, up -> down -> left -> right, just like the input tensor
         for direction in StatePreprocessor.DIRECTIONS:
@@ -175,3 +248,23 @@ class StatePreprocessor:
     @staticmethod
     def check_position_in_matrix(matrix, position):
         return matrix[position.y][position.x] == 1
+
+    @staticmethod
+    def set_direction_information_in_tensor(tensor, tensor_counter, item, distance):
+        tensor[tensor_counter] = 1 if item == StatePreprocessor.MapElements.WALL else 0
+        tensor_counter = tensor_counter + 1
+        tensor[tensor_counter] = 1 if item == StatePreprocessor.MapElements.CRATE else 0
+        tensor_counter = tensor_counter + 1
+        tensor[tensor_counter] = 1 if item == StatePreprocessor.MapElements.COIN else 0
+        tensor_counter = tensor_counter + 1
+        tensor[tensor_counter] = 1 if item == StatePreprocessor.MapElements.BOMB else 0
+        tensor_counter = tensor_counter + 1
+        tensor[tensor_counter] = 1 if item == StatePreprocessor.MapElements.EXPLOSION else 0
+        tensor_counter = tensor_counter + 1
+        tensor[tensor_counter] = 1 if item == StatePreprocessor.MapElements.OPPONENT else 0
+        tensor_counter = tensor_counter + 1
+
+        tensor[tensor_counter] = distance
+        tensor_counter = tensor_counter + 1
+
+        return tensor, tensor_counter

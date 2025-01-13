@@ -1,17 +1,19 @@
 import math
 
-from bomberman_rl.envs.actions import ActionSpace
+from bomberman_rl.envs.actions import ActionSpace, Actions
 import random
 
 import torch
 import torch.nn as nn
 
+from scripts.q_learning.replay_buffer import ReplayBuffer
 from scripts.q_learning.state_preprocessor import StatePreprocessor
 
 
 class DQN(nn.Module):
 
-    INPUT_SIZE = 13
+    INPUT_SIZE = StatePreprocessor.V2_SIZE
+    FILE_PATH = "/Users/philipp/Development/Master/DRL/bomberman_rl/trained_networks/replay"
 
     def __init__(self, gamma, learning_rate):
         super(DQN, self).__init__()
@@ -27,6 +29,8 @@ class DQN(nn.Module):
             nn.ReLU(),
             nn.Linear(60, ActionSpace.n),
         ).to(self.device)
+
+        self.replay_buffer = ReplayBuffer(10000)
 
         self.eps_start = 0.5  # self.eps_start is the starting value of epsilon
         self.eps_end = 0.05  # self.eps_end is the final value of epsilon
@@ -58,7 +62,7 @@ class DQN(nn.Module):
             action = ActionSpace.sample()
             # print("RND: {}".format(action))
         else:
-            state_tensor = StatePreprocessor.process_v1(state).to(self.device)
+            state_tensor = StatePreprocessor.process_v2(state).to(self.device)
             state_tensor = state_tensor.unsqueeze(0)
 
             q_values = self.forward(state_tensor.to(self.device))
@@ -66,7 +70,15 @@ class DQN(nn.Module):
             # print("DQN: {}".format(action))
         return action
 
+    def save_network(self, filename):
+        torch.save(self.state_dict(), f"{DQN.FILE_PATH}/{filename}.pt")
 
+    def load_network(self, filename):
+        network = torch.load(f"{DQN.FILE_PATH}/{filename}.pt", weights_only=True, map_location=self.device)
+        if network is None:
+            raise AssertionError(f"Expected to find {DQN.FILENAME} file")
+
+        self.load_state_dict(network)
 
     @staticmethod
     def choose_device():

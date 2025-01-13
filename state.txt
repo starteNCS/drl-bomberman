@@ -36,17 +36,37 @@ Input Tensor: [
 - X Coordinate
 - Y Coordinate
 
-- See Up
-- Dist up
-- See Down
-- Dist Down
-- See Left
-- Dist Left
-- See Right
-- Dist Right
+- see wall up
+- see crate up
+- see coin up
+- see bomb up
+- see explosion up
+- see opponent up
+- Dist up (distance to thing seen up)
+- see wall down
+- see crate down
+- see coin down
+- see bomb down
+- see explosion down
+- see opponent down
+- Dist Down (distance to thing seen down)
+- see wall left
+- see crate left
+- see coin left
+- see bomb left
+- see explosion left
+- see opponent left
+- Dist Left (distance to thing seen left)
+- see wall right
+- see crate right
+- see coin right
+- see bomb right
+- see explosion right
+- see opponent right
+- Dist Right (distance to thing seen right)
 
 - Bombs left
 - Score
 - Oppenent_Count
-
+]
 
