@@ -57,11 +57,9 @@ class QLearningAgent(LearningAgent):
         if self.trainer is None:
             self.trainer = Trainer(self.q_net, self.replay_buffer)
 
-        self.trainer.optimize(old_state, self_action, new_state, step_reward)
+        done = ev.GOT_KILLED in events
 
-        # if new_state != old_state:
-        #     self.trainer.replay_buffer.push(old_state, self_action, new_state, step_reward)
-        # self.trainer.optimize_replay()
+        self.trainer.optimize(old_state, self_action, step_reward, new_state, done)
 
         pass
 
@@ -95,12 +93,11 @@ class QLearningAgent(LearningAgent):
         rewards = self.visualization["dqn_total_rewards"]
         episode_number = self.visualization["dqn_episode_number"]
 
-        if episode_number % 50 == 0:
-            print(f"Episode {episode_number} completed")
-            print(f"Replay buffer size: {len(self.replay_buffer)}")
-
-        if episode_number % 100 != 0:
+        if episode_number % 50 != 0:
             return
+
+        print(f"Episode {episode_number} completed")
+        print(f"Replay buffer size: {len(self.replay_buffer)}")
 
         plt.figure(figsize=(12, 6))
         plt.title('Environment Steps: %s. - Reward: %s' % (episode_number, np.mean(rewards[-10:])))

@@ -32,9 +32,9 @@ class DQN(nn.Module):
 
         self.replay_buffer = ReplayBuffer(10000)
 
-        self.eps_start = 0.5  # self.eps_start is the starting value of epsilon
+        self.eps_start = 1  # self.eps_start is the starting value of epsilon
         self.eps_end = 0.05  # self.eps_end is the final value of epsilon
-        self.eps_decay = 2500  # self.eps_decay controls the rate of exponential decay of epsilon, higher means a slower decay
+        self.eps_decay = 5000  # self.eps_decay controls the rate of exponential decay of epsilon, higher means a slower decay
         self.steps = 0
 
     def forward(self, in_tensor):
@@ -53,21 +53,20 @@ class DQN(nn.Module):
         :param state: Current state (dict, observation space).
         :return: Selected action.
         """
+        action = None
 
         self.steps = self.steps + 1
-
-        action = None
         epsilon = self.eps_end + (self.eps_start - self.eps_end) * math.exp(-1. * self.steps / self.eps_decay)
-        if random.random() > epsilon:
+        if random.random() < epsilon:
             action = ActionSpace.sample()
-            # print("RND: {}".format(action))
         else:
             state_tensor = StatePreprocessor.process_v2(state).to(self.device)
             state_tensor = state_tensor.unsqueeze(0)
 
-            q_values = self.forward(state_tensor.to(self.device))
-            action = q_values.argmax(dim=1).item()
-            # print("DQN: {}".format(action))
+            with torch.no_grad():
+                q_values = self.forward(state_tensor.to(self.device))
+                action = q_values.argmax(dim=1).item()
+
         return action
 
     def save_network(self, filename):

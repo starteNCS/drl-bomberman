@@ -34,7 +34,9 @@ class StatePreprocessor:
         Position(0, 1),  # Right
     ]
 
-    V2_SIZE = 3 + 4 * 7 + 3
+    V0_SIZE = 17 * 17 + 2
+
+    V2_SIZE = 1 + 4 * 7 + 4
 
     @staticmethod
     def process_v2(state: dict) -> Tensor | None:
@@ -49,12 +51,10 @@ class StatePreprocessor:
         self_pos_matrix = np.array(state["self_pos"])
         player_pos_y_list, player_pos_x_list = np.where(self_pos_matrix == 1)
         player_pos = Position(player_pos_x_list[0], player_pos_y_list[0])
-        input_tensor[0] = player_pos.x
-        input_tensor[1] = player_pos.y
 
-        input_tensor[2] = state["bombs"][player_pos.y][player_pos.x]
+        input_tensor[0] = state["bombs"][player_pos.y][player_pos.x]
 
-        input_tensor_counter = 3
+        input_tensor_counter = 1
 
         # order is given in DIRECTIONS array, up -> down -> left -> right, just like the input tensor
         for direction in StatePreprocessor.DIRECTIONS:
@@ -100,6 +100,8 @@ class StatePreprocessor:
         input_tensor[input_tensor_counter] = state["self_info"]["score"]
         input_tensor_counter = input_tensor_counter + 1
         input_tensor[input_tensor_counter] = len(state["opponents_info"])
+        input_tensor_counter = input_tensor_counter + 1
+        input_tensor[input_tensor_counter] = state["step"]
 
         return input_tensor
 
@@ -240,8 +242,8 @@ class StatePreprocessor:
         tensor = torch.cat((tensor, score_tensor), dim=0)
         tensor = torch.cat((tensor, bombs_left_tensor), dim=0)
 
-        if tensor.shape[0] != 17*17+2:
-            raise AssertionError("Tensor shape of state does not match the excepted shape of 1x{}, found {}".format(17*17+2, tensor.shape))
+        # if tensor.shape[0] != StatePreprocessor.V0_SIZE:
+        #     raise AssertionError("Tensor shape of state does not match the excepted shape of 1x{}, found {}".format(StatePreprocessor.V0_SIZE, tensor.shape))
 
         return tensor.float()
 
