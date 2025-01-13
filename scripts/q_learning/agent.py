@@ -22,7 +22,8 @@ class QLearningAgent(LearningAgent):
         self.gamma: float = 0.99
         self.learning_rate: float = 0.001
 
-        self.q_net: DQN = None
+        self.q_net = None
+
         self.replay_buffer: ReplayBuffer = None
         self.trainer: Trainer = None
 
@@ -37,6 +38,7 @@ class QLearningAgent(LearningAgent):
         self.learning_rate: float = 0.001
         self.q_net = DQN(self.gamma, self.learning_rate)
         self.q_net.train()
+
         self.replay_buffer = ReplayBuffer(10_000)
 
         self.reset_visualization()
@@ -137,14 +139,14 @@ class QLearningAgent(LearningAgent):
 
             ev.CRATE_DESTROYED: 5.,
             ev.COIN_FOUND: 25.,
-            ev.COIN_COLLECTED: 100.,
+            ev.COIN_COLLECTED: 10.,
 
-            ev.KILLED_OPPONENT: 500.,
-            ev.KILLED_SELF: -350.,
+            ev.KILLED_OPPONENT: 50.,
+            ev.KILLED_SELF: -20.,
 
-            ev.GOT_KILLED: -350.,
+            ev.GOT_KILLED: -15.,
             ev.OPPONENT_ELIMINATED: 0.,  # somebody killed somebody, not really of importance here
-            ev.SURVIVED_ROUND: 0.
+            ev.SURVIVED_ROUND: 35.
         }
 
         step_reward = 0

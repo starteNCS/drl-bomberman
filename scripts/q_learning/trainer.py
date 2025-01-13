@@ -1,7 +1,10 @@
+import copy
+
 import numpy as np
 import torch
 from torch import nn
 
+from scripts.learning_agent.q_learning import DQN
 from scripts.q_learning.replay_buffer import ReplayBuffer, Replay
 from scripts.q_learning.state_preprocessor import StatePreprocessor
 
@@ -12,9 +15,15 @@ from scripts.q_learning.state_preprocessor import StatePreprocessor
 class Trainer:
 
     def __init__(self, q_net, replay_buffer: ReplayBuffer):
-        self.q_net = q_net
-        self.optimizer = torch.optim.Adam(self.q_net.parameters(), lr=self.q_net.learning_rate)
+        self.policy_q_net = q_net
+
+        self.target_q_net: DQN = copy.deepcopy(self.policy_q_net)
+        self.target_q_net.eval()
+        self.optimizer = torch.optim.Adam(self.target_q_net.parameters(), lr=self.policy_q_net.learning_rate)
+
         self.replay_buffer = replay_buffer
+
+        self.tau = 0.01
 
     def optimize(self,  old_state, action, next_state, reward):
         """
@@ -23,19 +32,25 @@ class Trainer:
 
         # TODO@JONATHAN: Hier vielleicht double q learning?
 
-        old_state_tensor = StatePreprocessor.process_v2(old_state).float().to(self.q_net.device)
-        next_state_tensor = StatePreprocessor.process_v2(next_state).float().to(self.q_net.device)
+        old_state_tensor = StatePreprocessor.process_v2(old_state).float().to(self.policy_q_net.device)
+        next_state_tensor = StatePreprocessor.process_v2(next_state).float().to(self.policy_q_net.device)
 
         # Update the Q-network using the current step information
         with torch.no_grad():
-            next_q_value = self.q_net(next_state_tensor.unsqueeze(0)).max(1)[0].item()
-            target_q_value = reward + self.q_net.gamma * next_q_value
+            # 1. Action selection using the main network (q_net)
+            next_action = self.policy_q_net(next_state_tensor.unsqueeze(0)).argmax(1)
+
+            # 2. Evaluate Q-value of the selected action using the target network (q_target_net)
+            next_q_value = self.target_q_net(next_state_tensor.unsqueeze(0))[0, next_action]
+
+            # 3. Compute target Q-value
+            target_q_value = reward + self.policy_q_net.gamma * next_q_value.item()
 
         # Convert the target Q-value to a PyTorch tensor and move it to the same device as the model
-        target_tensor = torch.tensor([target_q_value]).to(self.q_net.device)
+        target_tensor = torch.tensor([target_q_value]).to(self.policy_q_net.device)
 
         # Compute the Q-value for the current state-action pair
-        q_value = self.q_net(old_state_tensor)[action]
+        q_value = self.policy_q_net(old_state_tensor.unsqueeze(0))[0, action]
 
         # Compute the loss
         loss = torch.nn.functional.mse_loss(q_value, target_tensor.squeeze(0))
@@ -45,7 +60,11 @@ class Trainer:
         loss.backward()
         self.optimizer.step()
 
-        return loss.item()
+        self.soft_update()
+
+    def soft_update(self):
+        for target_param, param in zip(self.target_q_net.parameters(), self.policy_q_net.parameters()):
+            target_param.data.copy_(self.tau * param.data + (1 - self.tau) * target_param.data)
 
     def optimize_replay(self, old_state, action, next_state, reward):
         """
