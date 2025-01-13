@@ -31,3 +31,22 @@
         }
     ]
 }
+
+Input Tensor: [
+- X Coordinate
+- Y Coordinate
+
+- See Up
+- Dist up
+- See Down
+- Dist Down
+- See Left
+- Dist Left
+- See Right
+- Dist Right
+
+- Bombs left
+- Score
+- Oppenent_Count
+
+
