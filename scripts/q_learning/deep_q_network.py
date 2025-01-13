@@ -1,3 +1,5 @@
+import math
+
 from bomberman_rl.envs.actions import ActionSpace
 import random
 
@@ -26,6 +28,11 @@ class DQN(nn.Module):
             nn.Linear(60, ActionSpace.n),
         ).to(self.device)
 
+        self.eps_start = 0.5  # self.eps_start is the starting value of epsilon
+        self.eps_end = 0.05  # self.eps_end is the final value of epsilon
+        self.eps_decay = 2500  # self.eps_decay controls the rate of exponential decay of epsilon, higher means a slower decay
+        self.steps = 0
+
     def forward(self, in_tensor):
         """
         "Runs the neural network"
@@ -42,9 +49,12 @@ class DQN(nn.Module):
         :param state: Current state (dict, observation space).
         :return: Selected action.
         """
-        # TODO@JONATHAN: hier ne bessere epsilon decay funktion finden
+
+        self.steps = self.steps + 1
+
         action = None
-        if random.randint(1, 25) == 1:
+        epsilon = self.eps_end + (self.eps_start - self.eps_end) * math.exp(-1. * self.steps / self.eps_decay)
+        if random.random() > epsilon:
             action = ActionSpace.sample()
             # print("RND: {}".format(action))
         else:
