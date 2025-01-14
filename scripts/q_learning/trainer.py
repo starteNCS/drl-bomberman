@@ -33,8 +33,6 @@ class Trainer:
         One iteration of Q learning (Bellman optimality equation for Q values)
         """
 
-        self.optimize_steps = self.optimize_steps + 1
-
         old_state_tensor = StatePreprocessor.process_v2(old_state).float().to(self.policy_q_net.device)
         next_state_tensor = StatePreprocessor.process_v2(next_state).float().to(self.policy_q_net.device)
 
@@ -75,8 +73,6 @@ class Trainer:
         if len(self.replay_buffer.memory) < self.replay_optimizer_starting:
             return  # Not enough samples to perform optimization
 
-        self.optimize_steps = self.optimize_steps + 1
-
         # Sample a batch of experiences from the replay buffer
         batch = self.replay_buffer.get_sample(self.replay_batch_size)
         batch = Replay(*zip(*batch))  # Unpack batch into namedtuple fields
@@ -112,7 +108,9 @@ class Trainer:
             self.target_q_net.load_state_dict(self.policy_q_net.state_dict())
 
     def optimize(self, old_state, action, reward, next_state, done):
-        if old_state["step"] > 2:
+        self.optimize_steps = self.optimize_steps + 1
+
+        if old_state["step"] > 5:
             self.replay_buffer.push(old_state, action, reward, next_state, done)
 
         if len(self.replay_buffer.memory) < self.replay_optimizer_starting:

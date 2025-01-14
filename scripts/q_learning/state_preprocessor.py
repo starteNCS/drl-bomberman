@@ -16,6 +16,9 @@ class Position:
     def __add__(self, other):
         return Position(self.x + other.x, self.y + other.y)
 
+    def __str__(self):
+        return f'({self.x}, {self.y})'
+
 
 class StatePreprocessor:
 
@@ -31,12 +34,12 @@ class StatePreprocessor:
         Position(0, 1),  # Up
         Position(0, -1),  # Down
         Position(-1, 0),  # Left
-        Position(0, 1),  # Right
+        Position(1, 0),  # Right
     ]
 
     V0_SIZE = 17 * 17 + 2
 
-    V2_SIZE = 1 + 4 * 7 + 4
+    V2_SIZE = 1 + 4 * 7 + 5
 
     @staticmethod
     def process_v2(state: dict) -> Tensor | None:
@@ -49,12 +52,13 @@ class StatePreprocessor:
         input_tensor = torch.zeros(StatePreprocessor.V2_SIZE, dtype=torch.float)
 
         self_pos_matrix = np.array(state["self_pos"])
-        player_pos_y_list, player_pos_x_list = np.where(self_pos_matrix == 1)
-        player_pos = Position(player_pos_x_list[0], player_pos_y_list[0])
+        row, col = np.where(self_pos_matrix == 1)
+        player_pos = Position(row[0], col[0])
 
-        input_tensor[0] = state["bombs"][player_pos.y][player_pos.x]
+        input_tensor[0] = 1 if state["bombs"][player_pos.x][player_pos.y] != 0 else 0
 
         input_tensor_counter = 1
+        see_bomb_in_any_dir = False
 
         # order is given in DIRECTIONS array, up -> down -> left -> right, just like the input tensor
         for direction in StatePreprocessor.DIRECTIONS:
@@ -80,6 +84,7 @@ class StatePreprocessor:
                 bomb = StatePreprocessor.check_position_in_matrix(state["bombs"], current_see_pos)
                 if bomb:
                     input_tensor, input_tensor_counter = StatePreprocessor.set_direction_information_in_tensor(input_tensor, input_tensor_counter, StatePreprocessor.MapElements.BOMB, distance)
+                    see_bomb_in_any_dir = True
                     break
 
                 explosion = StatePreprocessor.check_position_in_matrix(state["explosions"], current_see_pos)
@@ -100,6 +105,8 @@ class StatePreprocessor:
         input_tensor[input_tensor_counter] = state["self_info"]["score"]
         input_tensor_counter = input_tensor_counter + 1
         input_tensor[input_tensor_counter] = len(state["opponents_info"])
+        input_tensor_counter = input_tensor_counter + 1
+        input_tensor[input_tensor_counter] = 1 if see_bomb_in_any_dir else 0
         input_tensor_counter = input_tensor_counter + 1
         input_tensor[input_tensor_counter] = state["step"]
 
@@ -249,7 +256,7 @@ class StatePreprocessor:
 
     @staticmethod
     def check_position_in_matrix(matrix, position):
-        return matrix[position.y][position.x] == 1
+        return matrix[position.x][position.y] != 0
 
     @staticmethod
     def set_direction_information_in_tensor(tensor, tensor_counter, item, distance):

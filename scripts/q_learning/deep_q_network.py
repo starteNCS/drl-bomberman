@@ -13,7 +13,7 @@ from scripts.q_learning.state_preprocessor import StatePreprocessor
 class DQN(nn.Module):
 
     INPUT_SIZE = StatePreprocessor.V2_SIZE
-    FILE_PATH = "/Users/philipp/Development/Master/DRL/bomberman_rl/trained_networks/replay"
+    FILE_PATH = "/Users/philipp/Development/Master/DRL/bomberman_rl/trained_networks/next"
 
     def __init__(self, gamma, learning_rate):
         super(DQN, self).__init__()
@@ -25,9 +25,13 @@ class DQN(nn.Module):
         print("Using device: {}".format(self.device))
 
         self.layers = nn.Sequential(
-            nn.Linear(self.INPUT_SIZE, 60),
+            nn.Linear(self.INPUT_SIZE, 64),
             nn.ReLU(),
-            nn.Linear(60, ActionSpace.n),
+            nn.Linear(64, 128),
+            nn.Sigmoid(),
+            nn.Linear(128, 64),
+            nn.ReLU(),
+            nn.Linear(64, ActionSpace.n),
         ).to(self.device)
 
         self.replay_buffer = ReplayBuffer(10000)

@@ -1,9 +1,6 @@
-from bomberman_rl.envs.actions import Actions
 from bomberman_rl.envs.agent_code import LearningAgent
 import bomberman_rl.envs.events as ev
 import numpy as np
-
-import torch
 
 import matplotlib.pyplot as plt
 
@@ -19,6 +16,8 @@ class QLearningAgent(LearningAgent):
     def __init__(self):
         super().__init__()
         self.visualization: {} = None
+        self.visualization_moving_average_window = 50
+
         self.gamma: float = 0.99
         self.learning_rate: float = 0.001
 
@@ -47,7 +46,7 @@ class QLearningAgent(LearningAgent):
         if new_state is None:
             new_state = old_state
 
-        step_reward = QLearningAgent.calculate_reward(events)
+        step_reward = QLearningAgent.calculate_reward(events, new_state)
 
         self.visualization["dqn_episode_reward"] += step_reward
         self.visualization["dqn_episode_steps"] += 1
@@ -67,12 +66,13 @@ class QLearningAgent(LearningAgent):
         pass
 
     def end_of_round(self):
+        self.visualization["dqn_episode_number"] = self.visualization["dqn_episode_number"] + 1
+        current_episode = self.visualization["dqn_episode_number"]
+
         self.visualization["dqn_total_rewards"].append(self.visualization["dqn_episode_reward"])
-        self.visualization["dqn_total_env_steps"].append(self.visualization["dqn_episode_steps"])
         self.visualization["dqn_episode_reward"] = 0
         self.visualization["dqn_episode_steps"] = 0
-        current_episode = self.visualization["dqn_episode_number"]
-        self.visualization["dqn_episode_number"] = self.visualization["dqn_episode_number"] + 1
+        self.add_moving_average(self.visualization["dqn_total_rewards"])
 
         self.plot_dqn_learning()
 
@@ -83,18 +83,16 @@ class QLearningAgent(LearningAgent):
     def reset_visualization(self):
         self.visualization = {
             "dqn_total_rewards": [],
-            "dqn_total_env_steps": [],
+            "dqn_total_rewards_moving_average": [],
             "dqn_episode_reward": 0,
             "dqn_episode_steps": 0,
-            "dqn_episode_number": 1
+            "dqn_episode_number": 0
         }
 
     def plot_dqn_learning(self):
         rewards = self.visualization["dqn_total_rewards"]
+        moving_average = self.visualization["dqn_total_rewards_moving_average"]
         episode_number = self.visualization["dqn_episode_number"]
-
-        if episode_number % 50 != 0:
-            return
 
         print(f"Episode {episode_number} completed")
         print(f"Replay buffer size: {len(self.replay_buffer)}")
@@ -102,6 +100,7 @@ class QLearningAgent(LearningAgent):
         plt.figure(figsize=(12, 6))
         plt.title('Environment Steps: %s. - Reward: %s' % (episode_number, np.mean(rewards[-10:])))
         plt.plot(rewards, label="Rewards")
+        plt.plot(moving_average, label=f"Moving average of last {self.visualization_moving_average_window} Rewards")
         plt.xlabel("Environment Steps")
         plt.ylabel("Rewards")
         plt.legend()
@@ -115,8 +114,16 @@ class QLearningAgent(LearningAgent):
 
         plt.close()
 
+    def add_moving_average(self, rewards):
+        if len(rewards) < self.visualization_moving_average_window:
+            self.visualization["dqn_total_rewards_moving_average"].append(np.mean(rewards))
+            return
+
+        window = rewards[-self.visualization_moving_average_window:]
+        self.visualization["dqn_total_rewards_moving_average"].append(np.mean(window))
+
     @staticmethod
-    def calculate_reward(events):
+    def calculate_reward(events, next_state):
         """
         Calculates the step rewards given all the events
 
@@ -124,30 +131,34 @@ class QLearningAgent(LearningAgent):
         :return: step reward
         """
         reward_mapping = {
-            ev.MOVED_LEFT: -1.,
-            ev.MOVED_RIGHT: -1.,
-            ev.MOVED_UP: -1.,
-            ev.MOVED_DOWN: -1.,
+            ev.MOVED_LEFT: -0.1,
+            ev.MOVED_RIGHT: -0.1,
+            ev.MOVED_UP: -0.1,
+            ev.MOVED_DOWN: -0.1,
             ev.WAITED: -1.,
+
             ev.INVALID_ACTION: -10.,
 
-            ev.BOMB_DROPPED: -1.,
-            ev.BOMB_EXPLODED: 0.,
+            ev.BOMB_DROPPED: 5.,  # Small reward to encourage bombing
+            ev.BOMB_EXPLODED: 1.,  # Encourage the agent to drop bombs in effective places
 
-            ev.CRATE_DESTROYED: 5.,
-            ev.COIN_FOUND: 25.,
-            ev.COIN_COLLECTED: 10.,
+            ev.CRATE_DESTROYED: 10.,  # Increased to emphasize importance
+            ev.COIN_FOUND: 15.,  # Reduced to align better with COIN_COLLECTED
+            ev.COIN_COLLECTED: 25.,  # Increased to prioritize collection over finding
 
-            ev.KILLED_OPPONENT: 50.,
-            ev.KILLED_SELF: -20.,
+            ev.KILLED_OPPONENT: 50.,  # Keep as is
+            ev.KILLED_SELF: -50.,  # Stronger penalty to discourage self-destruction
 
-            ev.GOT_KILLED: -15.,
-            ev.OPPONENT_ELIMINATED: 0.,  # somebody killed somebody, not really of importance here
-            ev.SURVIVED_ROUND: 35.
+            ev.GOT_KILLED: -30.,  # Stronger penalty to emphasize survival
+            ev.OPPONENT_ELIMINATED: 0.,  # Neutral
+
+            ev.SURVIVED_ROUND: 50.,  # Increased to encourage long-term planning
         }
 
         step_reward = 0
         for event in events:
             step_reward += reward_mapping[event]
+
+        step_reward += next_state["step"] * 0.01
 
         return step_reward

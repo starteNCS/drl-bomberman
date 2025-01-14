@@ -412,7 +412,7 @@ class BombeRLeWorld(GenericWorld):
         # Reset agents and distribute starting positions
         active_agents = []
         for agent, start_position in zip(
-            self.agents, self.rng.permutation(start_positions)
+            self.agents, start_positions
         ):
             active_agents.append(agent)
             agent.x, agent.y = start_position
