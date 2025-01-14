@@ -101,17 +101,47 @@ class QLearningAgent(LearningAgent):
             self.q_net.save_network(f"episode_{self.visualization["dqn_episode_number"]}")
             print(f"Saved network to disk at episode {self.visualization['dqn_episode_number']}")
 
-    def reset_visualization(self):
+    @staticmethod
+    def calculate_reward(events, next_state):
         """
-        Setups up the visualization map
+        Calculates the step rewards given all the events
+
+        :param events: Events that occured in this step
+        :return: step reward
         """
-        self.visualization = {
-            "dqn_total_rewards": [],
-            "dqn_total_rewards_moving_average": [],
-            "dqn_episode_reward": 0,
-            "dqn_episode_steps": 0,
-            "dqn_episode_number": 0
+        reward_mapping = {
+            ev.MOVED_LEFT: -2.,  # moves just side to side with no punishment
+            ev.MOVED_RIGHT: -2.,  # moves just side to side with no punishment
+            ev.MOVED_UP: -2.,  # moves just side to side with no punishment
+            ev.MOVED_DOWN: -2.,  # moves just side to side with no punishment
+            ev.WAITED: -5.,
+
+            ev.INVALID_ACTION: -10.,
+
+            ev.BOMB_DROPPED: 15.,  # Small reward to encourage bombing
+            ev.BOMB_EXPLODED: 5.,
+
+            ev.CRATE_DESTROYED: 10.,
+            ev.COIN_FOUND: 15.,
+            ev.COIN_COLLECTED: 100.,  # very strong incentive to collect coins (because agent ignores coins currently)
+
+            ev.KILLED_OPPONENT: 500.,  # very strong incentive to kill opponents (matching the reward structure of the game)
+            ev.KILLED_SELF: -50.,
+
+            ev.GOT_KILLED: -30.,
+            ev.OPPONENT_ELIMINATED: 0.,
+
+            ev.SURVIVED_ROUND: 50.,
         }
+
+        step_reward = 0
+        for event in events:
+            step_reward += reward_mapping[event]
+
+        step_reward += next_state["step"] * 0.0025  # Incentive to stay alive, 0.0025 is an educated guess that leads to
+                                                    # a cumulated reward of approx 100 for staying alive 400 episodes
+
+        return step_reward
 
     def plot_dqn_learning(self):
         """
@@ -126,7 +156,7 @@ class QLearningAgent(LearningAgent):
         print(f"Replay buffer size: {len(self.replay_buffer)}")
 
         plt.figure(figsize=(12, 6))
-        plt.title('Environment Steps: %s. - Reward: %s' % (episode_number, np.mean(rewards[-10:])))
+        plt.title('Environment Steps: %s. - Reward: %s' % (episode_number, moving_average[-1]))
         plt.plot(rewards, label="Rewards")
         plt.plot(moving_average, label=f"Moving average of last {self.visualization_moving_average_window} Rewards")
         plt.xlabel("Environment Steps")
@@ -156,44 +186,14 @@ class QLearningAgent(LearningAgent):
         window = rewards[-self.visualization_moving_average_window:]
         self.visualization["dqn_total_rewards_moving_average"].append(np.mean(window))
 
-    @staticmethod
-    def calculate_reward(events, next_state):
+    def reset_visualization(self):
         """
-        Calculates the step rewards given all the events
-
-        :param events: Events that occured in this step
-        :return: step reward
+        Setups up the visualization map
         """
-        reward_mapping = {
-            ev.MOVED_LEFT: -0.1,
-            ev.MOVED_RIGHT: -0.1,
-            ev.MOVED_UP: -0.1,
-            ev.MOVED_DOWN: -0.1,
-            ev.WAITED: -1.,
-
-            ev.INVALID_ACTION: -10.,
-
-            ev.BOMB_DROPPED: 5.,  # Small reward to encourage bombing
-            ev.BOMB_EXPLODED: 1.,
-
-            ev.CRATE_DESTROYED: 10.,
-            ev.COIN_FOUND: 15.,
-            ev.COIN_COLLECTED: 100.,  # very strong incentive to collect coins (because agent ignores coins currently)
-
-            ev.KILLED_OPPONENT: 500.,  # very strong incentive to kill opponents (matching the reward structure of the game)
-            ev.KILLED_SELF: -50.,
-
-            ev.GOT_KILLED: -30.,
-            ev.OPPONENT_ELIMINATED: 0.,
-
-            ev.SURVIVED_ROUND: 50.,
+        self.visualization = {
+            "dqn_total_rewards": [],
+            "dqn_total_rewards_moving_average": [],
+            "dqn_episode_reward": 0,
+            "dqn_episode_steps": 0,
+            "dqn_episode_number": 0
         }
-
-        step_reward = 0
-        for event in events:
-            step_reward += reward_mapping[event]
-
-        step_reward += next_state["step"] * 0.0025  # Incentive to stay alive, 0.0025 is an educated guess that leads to
-                                                    # a cumulated reward of approx 100 for staying alive 400 episodes
-
-        return step_reward
