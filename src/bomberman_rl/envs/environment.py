@@ -412,13 +412,13 @@ class BombeRLeWorld(GenericWorld):
         # Reset agents and distribute starting positions
         active_agents = []
         for agent, start_position in zip(
-            self.agents, start_positions
+            self.agents, self.rng.permutation(start_positions)
         ):
             active_agents.append(agent)
             agent.x, agent.y = start_position
 
         return arena, coins, active_agents
-    
+
 
     def build_custom_arena(self):
         match self.scenario_info["TYPE"]:
