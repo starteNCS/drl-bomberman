@@ -5,6 +5,7 @@ import torch
 from torch import nn
 
 from scripts.learning_agent.q_learning import DQN
+from scripts.q_learning.features import REPLAY_BUFFER_ENABLED, DOUBLE_DQN_ENABLED
 from scripts.q_learning.replay_buffer import ReplayBuffer, Replay
 from scripts.q_learning.state_preprocessor import StatePreprocessor
 
@@ -41,8 +42,12 @@ class Trainer:
             # 1. Action selection using the main network (q_net)
             next_action = self.policy_q_net(next_state_tensor.unsqueeze(0)).argmax(1)
 
+            next_q_value = None
             # 2. Evaluate Q-value of the selected action using the target network (q_target_net)
-            next_q_value = self.target_q_net(next_state_tensor.unsqueeze(0))[0, next_action]
+            if DOUBLE_DQN_ENABLED:
+                next_q_value = self.target_q_net(next_state_tensor.unsqueeze(0))[0, next_action]
+            else:
+                next_q_value = self.policy_q_net(next_state_tensor.unsqueeze(0))[0, next_action]
 
             # 3. Compute target Q-value
             target_q_value = reward if done else reward + self.policy_q_net.gamma * next_q_value.item()
@@ -61,7 +66,7 @@ class Trainer:
         loss.backward()
         self.optimizer.step()
 
-        if self.optimize_steps % self.sync_every_steps == 0:
+        if DOUBLE_DQN_ENABLED and self.optimize_steps % self.sync_every_steps == 0:
             self.target_q_net.load_state_dict(self.policy_q_net.state_dict())
 
 
@@ -92,7 +97,11 @@ class Trainer:
             # Select actions using the main network
             next_actions = self.policy_q_net(next_states).argmax(1)
             # Evaluate selected actions using the target network
-            next_q_values = self.target_q_net(next_states).gather(1, next_actions.unsqueeze(1)).squeeze(1)
+            next_q_values = None
+            if DOUBLE_DQN_ENABLED:
+                next_q_values = self.target_q_net(next_states).gather(1, next_actions.unsqueeze(1)).squeeze(1)
+            else:
+                next_q_values = self.policy_q_net(next_states).gather(1, next_actions.unsqueeze(1)).squeeze(1)
             # Compute target Q-values
             target_q_values = rewards + (1.0 - done) * self.policy_q_net.gamma * next_q_values
 
@@ -104,14 +113,16 @@ class Trainer:
         loss.backward()
         self.optimizer.step()
 
-        if self.optimize_steps % self.sync_every_steps == 0:
+        if DOUBLE_DQN_ENABLED and self.optimize_steps % self.sync_every_steps == 0:
             self.target_q_net.load_state_dict(self.policy_q_net.state_dict())
 
     def optimize(self, old_state, action, reward, next_state, done):
-        self.optimize_steps = self.optimize_steps + 1
+        if not REPLAY_BUFFER_ENABLED:
+            self.optimize_single(old_state, action, reward, next_state, done)
+            return
 
-        if old_state["step"] > 5:
-            self.replay_buffer.push(old_state, action, reward, next_state, done)
+        self.optimize_steps = self.optimize_steps + 1
+        self.replay_buffer.push(old_state, action, reward, next_state, done)
 
         if len(self.replay_buffer.memory) < self.replay_optimizer_starting:
             self.optimize_single(old_state, action, reward, next_state, done)

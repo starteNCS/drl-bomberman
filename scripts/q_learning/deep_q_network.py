@@ -6,6 +6,7 @@ import random
 import torch
 import torch.nn as nn
 
+from scripts.q_learning.features import EPSILON_DECAY_ENABLED
 from scripts.q_learning.replay_buffer import ReplayBuffer
 from scripts.q_learning.state_preprocessor import StatePreprocessor
 
@@ -61,7 +62,7 @@ class DQN(nn.Module):
 
         self.steps = self.steps + 1
         epsilon = self.eps_end + (self.eps_start - self.eps_end) * math.exp(-1. * self.steps / self.eps_decay)
-        if random.random() < epsilon:
+        if (EPSILON_DECAY_ENABLED and random.random() < epsilon) or (not EPSILON_DECAY_ENABLED and random.random() < 0.1):
             action = ActionSpace.sample()
         else:
             state_tensor = StatePreprocessor.process_v2(state).to(self.device)

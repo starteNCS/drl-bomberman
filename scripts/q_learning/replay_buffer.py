@@ -12,6 +12,10 @@ class ReplayBuffer(object):
 
     def push(self, old_state, action, reward, new_state, done):
         """Save a Replay"""
+
+        if len(self.memory) == self.memory.maxlen:
+            self.memory.popleft()  # pop the first (oldest) element of the replay buffer, once buffer is full
+
         self.memory.append(Replay(old_state, action, reward, new_state, done))
 
     def get_sample(self, batch_size):
