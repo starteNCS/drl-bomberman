@@ -174,25 +174,26 @@ class QLearningAgent(LearningAgent):
             ev.INVALID_ACTION: -10.,
 
             ev.BOMB_DROPPED: 5.,  # Small reward to encourage bombing
-            ev.BOMB_EXPLODED: 1.,  # Encourage the agent to drop bombs in effective places
+            ev.BOMB_EXPLODED: 1.,
 
-            ev.CRATE_DESTROYED: 10.,  # Increased to emphasize importance
-            ev.COIN_FOUND: 15.,  # Reduced to align better with COIN_COLLECTED
-            ev.COIN_COLLECTED: 25.,  # Increased to prioritize collection over finding
+            ev.CRATE_DESTROYED: 10.,
+            ev.COIN_FOUND: 15.,
+            ev.COIN_COLLECTED: 100.,  # very strong incentive to collect coins (because agent ignores coins currently)
 
-            ev.KILLED_OPPONENT: 50.,  # Keep as is
-            ev.KILLED_SELF: -50.,  # Stronger penalty to discourage self-destruction
+            ev.KILLED_OPPONENT: 500.,  # very strong incentive to kill opponents (matching the reward structure of the game)
+            ev.KILLED_SELF: -50.,
 
-            ev.GOT_KILLED: -30.,  # Stronger penalty to emphasize survival
-            ev.OPPONENT_ELIMINATED: 0.,  # Neutral
+            ev.GOT_KILLED: -30.,
+            ev.OPPONENT_ELIMINATED: 0.,
 
-            ev.SURVIVED_ROUND: 50.,  # Increased to encourage long-term planning
+            ev.SURVIVED_ROUND: 50.,
         }
 
         step_reward = 0
         for event in events:
             step_reward += reward_mapping[event]
 
-        step_reward += next_state["step"] * 0.01
+        step_reward += next_state["step"] * 0.0025  # Incentive to stay alive, 0.0025 is an educated guess that leads to
+                                                    # a cumulated reward of approx 100 for staying alive 400 episodes
 
         return step_reward
