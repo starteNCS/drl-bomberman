@@ -32,6 +32,15 @@ class Trainer:
     def optimize_single(self, old_state, action, reward, next_state, done):
         """
         One iteration of Q learning (Bellman optimality equation for Q values)
+
+        Might use double Q learning, if enabled.
+        If double Q learning is enabled, the target network and the policy network are hard synced every few steps
+
+        :param old_state: the state the environment had
+        :param action: the action that lead from old_state to next_state
+        :param reward: the reward that the agent got for moving from old_state to next_state
+        :param next_state: the state the environment had
+        :param done: whether the episode is done or not
         """
 
         old_state_tensor = StatePreprocessor.process_v2(old_state).float().to(self.policy_q_net.device)
@@ -73,7 +82,10 @@ class Trainer:
 
     def optimize_replay(self):
         """
-        One iteration of Double Q-Learning with Replay Buffer
+        Replay buffer of Double Q-Learning with Replay Buffer
+
+        Uses double Q-Learning, if enabled.
+        If double Q learning is enabled, the target network and the policy network are hard synced every few steps
         """
         if len(self.replay_buffer.memory) < self.replay_optimizer_starting:
             return  # Not enough samples to perform optimization

@@ -44,7 +44,16 @@ class StatePreprocessor:
     @staticmethod
     def process_v2(state: dict) -> Tensor | None:
         """
-        same as process_v1, but using one-hot encoding
+        In general the same as in v1, but using one-hot encoding for each direction
+        This results in each direction being a sept-tupel
+
+        [0]: If a bomb is on the field of the agent
+        4 times for each direction:
+            [1-8]: What is in direction
+        [30]: How many bombs are left for the agent
+        [31]: What the score is for the agent
+        [32]: If the agent sees a bomb in any direction
+        [33]: The current episode step
         """
         if state is None:
             return None
@@ -114,6 +123,11 @@ class StatePreprocessor:
 
     @staticmethod
     def process_v1(state) -> Tensor | None:
+        """
+        Version 1 of state preprocessing
+
+        Saves what it sees in a direction and the distance to it in a tuple for each direction
+        """
         if state is None:
             return None
 
@@ -126,7 +140,6 @@ class StatePreprocessor:
         input_tensor[1] = player_pos.y
 
         input_tensor[2] = state["bombs"][player_pos.y][player_pos.x]
-        print(f"Is bomb on player pos: {state["bombs"][player_pos.y][player_pos.x] == 1}")
 
         input_tensor_counter = 3
 
@@ -256,10 +269,24 @@ class StatePreprocessor:
 
     @staticmethod
     def check_position_in_matrix(matrix, position):
+        """
+        Checks if _something_ is in the position of this matrix
+        """
         return matrix[position.x][position.y] != 0
 
     @staticmethod
     def set_direction_information_in_tensor(tensor, tensor_counter, item, distance):
+        """
+        For version 2
+
+        sets the information about one direction into the input tensor for the nn
+        :param tensor: The input tensor for the nn
+        :param tensor_counter: The tensor index counter
+        :param item: The map element, that should be set in this direction
+        :param distance: The distance between the current position and the next map element
+
+        :return: the new input tensor and new counter value
+        """
         tensor[tensor_counter] = 1 if item == StatePreprocessor.MapElements.WALL else 0
         tensor_counter = tensor_counter + 1
         tensor[tensor_counter] = 1 if item == StatePreprocessor.MapElements.CRATE else 0

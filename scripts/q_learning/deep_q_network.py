@@ -39,7 +39,7 @@ class DQN(nn.Module):
 
         self.eps_start = 1  # self.eps_start is the starting value of epsilon
         self.eps_end = 0.05  # self.eps_end is the final value of epsilon
-        self.eps_decay = 5000  # self.eps_decay controls the rate of exponential decay of epsilon, higher means a slower decay
+        self.eps_decay = 5000  # a relatively high decay, to explore a lot in the begging
         self.steps = 0
 
     def forward(self, in_tensor):
@@ -75,9 +75,15 @@ class DQN(nn.Module):
         return action
 
     def save_network(self, filename):
+        """
+        Saving the network weights to the disk
+        """
         torch.save(self.state_dict(), f"{DQN.FILE_PATH}/{filename}.pt")
 
     def load_network(self, filename):
+        """
+        Loading the network weights from the disk
+        """
         network = torch.load(f"{DQN.FILE_PATH}/{filename}.pt", weights_only=True, map_location=self.device)
         if network is None:
             raise AssertionError(f"Expected to find {DQN.FILENAME} file")
@@ -90,7 +96,6 @@ class DQN(nn.Module):
         Chooses which device is available to run the nn on
         :return: string that represents the device
         """
-
         if torch.cuda.is_available():
             return "cuda"
         elif torch.mps.is_available():

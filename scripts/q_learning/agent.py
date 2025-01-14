@@ -30,9 +30,15 @@ class QLearningAgent(LearningAgent):
         pass
 
     def act(self, state, **kwargs):
+        """
+        Agent acts on the given state
+        """
         return self.q_net.get_action(state)
 
     def setup_training(self):
+        """
+        Setup the agent for training. This initializes the DQN in training mode
+        """
         self.gamma: float = 0.99
         self.learning_rate: float = 0.001
         self.q_net = DQN(self.gamma, self.learning_rate)
@@ -43,6 +49,18 @@ class QLearningAgent(LearningAgent):
         self.reset_visualization()
 
     def game_events_occurred(self, old_state, self_action, new_state, events):
+        """
+        On every game event (evey step in an episode) this method is called.
+        Here we keep track of some values for visualization purposes
+
+        Also on every step we calculate the reward (see calculate_reward method) and
+        train the agent on the given (S_t-1, A_t-1, R_t-1, S_t)
+
+        :param old_state: The previous state
+        :param self_action: The action that lead from old_state to new_state
+        :param new_state: The new state
+        :param events: The events that occured during this step
+        """
         if new_state is None:
             new_state = old_state
 
@@ -50,8 +68,6 @@ class QLearningAgent(LearningAgent):
 
         self.visualization["dqn_episode_reward"] += step_reward
         self.visualization["dqn_episode_steps"] += 1
-
-        # print(f"Action selected: {Actions(self_action)}, reward: ({step_reward} / {self.visualization['dqn_episode_reward']}), event: {events}")
 
         if self.trainer is None:
             self.trainer = Trainer(self.q_net, self.replay_buffer)
@@ -66,6 +82,11 @@ class QLearningAgent(LearningAgent):
         pass
 
     def end_of_round(self):
+        """
+        This method is called every time an episode ended
+
+        Here we only do some housekeeping for visualization purposes, but do nothing in regard of the network
+        """
         self.visualization["dqn_episode_number"] = self.visualization["dqn_episode_number"] + 1
         current_episode = self.visualization["dqn_episode_number"]
 
@@ -81,6 +102,9 @@ class QLearningAgent(LearningAgent):
             print(f"Saved network to disk at episode {self.visualization['dqn_episode_number']}")
 
     def reset_visualization(self):
+        """
+        Setups up the visualization map
+        """
         self.visualization = {
             "dqn_total_rewards": [],
             "dqn_total_rewards_moving_average": [],
@@ -90,6 +114,10 @@ class QLearningAgent(LearningAgent):
         }
 
     def plot_dqn_learning(self):
+        """
+        Plots a curve of all rewards and the moving average reward over the
+        last "self.visualization_moving_average_window" steps. The plot is saved to the root of the project
+        """
         rewards = self.visualization["dqn_total_rewards"]
         moving_average = self.visualization["dqn_total_rewards_moving_average"]
         episode_number = self.visualization["dqn_episode_number"]
@@ -115,6 +143,12 @@ class QLearningAgent(LearningAgent):
         plt.close()
 
     def add_moving_average(self, rewards):
+        """
+        Calculates the moving average of rewards array
+
+        :param rewards: array of all rewards over the course of trainig, even though technically the last
+                        "visualization_moving_average_window"-elements are enough
+        """
         if len(rewards) < self.visualization_moving_average_window:
             self.visualization["dqn_total_rewards_moving_average"].append(np.mean(rewards))
             return
