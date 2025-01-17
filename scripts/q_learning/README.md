@@ -3,8 +3,17 @@
 This directory contains an deep reinforcement learning agent for the bomberman game. The agent makes use of:
 - Deep q networks
 - Epsilon decay
+  - The epsilon greedy was already used in the base deep q network. Using epsilon greedy, the agent will choose a random
+    action of the action space, when a random value is below the epsilon-value.
+    With epsilon decay, this epsilon value will decrease over time. Therefore the agent will explore a lot in the
+    beginning (by choosing random actions) and later depend more on the trained behaviour
 - Replay Buffers
+  - With replay buffers, the agent saves a tupel of the old state (S_t-1), the action taken in this state (a_t-1), 
+    the reward it gained for choosing action A_t-1 in S_t-1 (R_t-1) and the resulting state (S_t).
+    Then in every step the algorithm chooses n random (S_t-1, A_t-1, R_t-1, S_t) tupel and trains itself on those.
+    Using this approach the experience gained from the environment becomes less correlated between states.
 - Double Q Learning
+  - As the name suggests, double q learning trains two separate networks. A policy network and a target network.
 
 ## File structure
 
@@ -61,3 +70,11 @@ This file contains the training of the neural network. It has three methods:
 
 To better evaluate the changes to the neural network, features.py contains three feature toggles, where features
 (Epsilon decay, Replay Buffers, Double Q Learning) can be toggled on and off.
+
+## Packages and versions
+
+### Numpy - version 2.2.0
+We are using numpy for easy access to simple mathematical functions like calculating the mean of an array.
+ 
+### Pytorch - version 2.5.1
+Using pytorch for all functions that were using for modelling the neural network.
