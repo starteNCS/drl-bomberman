@@ -69,10 +69,19 @@ class DQN(nn.Module):
             state_tensor = state_tensor.unsqueeze(0)
 
             with torch.no_grad():
-                q_values = self.forward(state_tensor.to(self.device))
-                action = q_values.argmax(dim=1).item()
+                q_values: torch.Tensor = self.forward(state_tensor.to(self.device))
+                action = q_values.max(dim=1).indices.item()
 
         return action
+
+    def get_q_value(self, state):
+        state_tensor = StatePreprocessor.process_v2(state).to(self.device)
+        state_tensor = state_tensor.unsqueeze(0)
+
+        with torch.no_grad():
+            q_values: torch.Tensor = self.forward(state_tensor.to(self.device))
+
+        return q_values.max(dim=1).values.item()
 
     def save_network(self, filename):
         """

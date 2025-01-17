@@ -26,8 +26,8 @@ class DummyAgent:
     def end_of_round(self, *args, **kwargs):
         pass
 
-def loop(env, agent, args, n_episodes=10000):
-    for i in range(n_episodes):
+def loop(env, agent, args, n_episodes=10_000):
+    for episode in range(n_episodes):
         state, info = env.reset()
         terminated, truncated, quit = False, False, False
         while not (terminated or truncated):

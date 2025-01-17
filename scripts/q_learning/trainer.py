@@ -24,10 +24,10 @@ class Trainer:
 
         self.replay_buffer = replay_buffer
         self.replay_optimizer_starting = 512  # only start with replay buffer optimizer, if there are 512 replays
-        self.replay_batch_size = 256 # batch size for replay learning
+        self.replay_batch_size = 256  # batch size for replay learning
 
         self.optimize_steps = 0
-        self.sync_every_steps = 20
+        self.sync_every_steps = 128
 
     def optimize_single(self, old_state, action, reward, next_state, done):
         """

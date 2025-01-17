@@ -7,7 +7,9 @@ import matplotlib.pyplot as plt
 from io import BytesIO
 
 from scripts.q_learning.deep_q_network import DQN
+from scripts.q_learning.features import INCLUDE_DISTANCE_FROM_MIDDLE_IN_REWARD
 from scripts.q_learning.replay_buffer import ReplayBuffer
+from scripts.q_learning.state_preprocessor import Position, StatePreprocessor
 from scripts.q_learning.trainer import Trainer
 
 
@@ -66,6 +68,12 @@ class QLearningAgent(LearningAgent):
 
         step_reward = QLearningAgent.calculate_reward(events, new_state)
 
+        if self.visualization["dqn_episode_steps"] == 0:
+            q_value = self.q_net.get_q_value(old_state)
+            self.visualization["dqn_total_q_values_start_state"].append(q_value)
+            self.add_moving_average(self.visualization["dqn_total_q_values_start_state"],
+                                    "dqn_total_q_values_start_state_moving_average")
+
         self.visualization["dqn_episode_reward"] += step_reward
         self.visualization["dqn_episode_steps"] += 1
 
@@ -75,8 +83,6 @@ class QLearningAgent(LearningAgent):
         done = ev.GOT_KILLED in events
 
         self.trainer.optimize(old_state, self_action, step_reward, new_state, done)
-
-        pass
 
     def game_over(self, state):
         pass
@@ -93,7 +99,9 @@ class QLearningAgent(LearningAgent):
         self.visualization["dqn_total_rewards"].append(self.visualization["dqn_episode_reward"])
         self.visualization["dqn_episode_reward"] = 0
         self.visualization["dqn_episode_steps"] = 0
-        self.add_moving_average(self.visualization["dqn_total_rewards"])
+        self.add_moving_average(self.visualization["dqn_total_rewards"], "dqn_total_rewards_moving_average")
+        self.visualization["dqn_total_q_values_start_state_average"]\
+            .append(np.mean(self.visualization["dqn_total_q_values_start_state"]))
 
         self.plot_dqn_learning()
 
@@ -141,6 +149,12 @@ class QLearningAgent(LearningAgent):
         step_reward += next_state["step"] * 0.0025  # Incentive to stay alive, 0.0025 is an educated guess that leads to
                                                     # a cumulated reward of approx 100 for staying alive 400 episodes
 
+        if INCLUDE_DISTANCE_FROM_MIDDLE_IN_REWARD:
+            player_pos = StatePreprocessor.self_position(next_state)
+            distance_from_middle = player_pos.manhattan(Position(8, 8))
+            normalize_distance = np.float32(1 / (1 + np.exp(-0.5 * (distance_from_middle - 7))))  # slow in begin and end
+            step_reward += -5 * normalize_distance  # punish agent for being at the border of the arena
+
         return step_reward
 
     def plot_dqn_learning(self):
@@ -151,6 +165,8 @@ class QLearningAgent(LearningAgent):
         rewards = self.visualization["dqn_total_rewards"]
         moving_average = self.visualization["dqn_total_rewards_moving_average"]
         episode_number = self.visualization["dqn_episode_number"]
+        moving_average_q_values = self.visualization["dqn_total_q_values_start_state_moving_average"]
+        average_q_values = self.visualization["dqn_total_q_values_start_state_average"]
 
         print(f"Episode {episode_number} completed")
         print(f"Replay buffer size: {len(self.replay_buffer)}")
@@ -167,24 +183,57 @@ class QLearningAgent(LearningAgent):
         plt.savefig(buf, format='png')
         buf.seek(0)
 
-        with open("base.png", "wb") as f:
+        with open("reward.png", "wb") as f:
             f.write(buf.getvalue())
 
         plt.close()
 
-    def add_moving_average(self, rewards):
+        plt.figure(figsize=(12, 6))
+        plt.title('Environment Steps: %s. - Q Value of staring state: %s' % (episode_number, moving_average_q_values[-1]))
+        plt.plot(moving_average_q_values, label=f"Moving average of last {self.visualization_moving_average_window } Q values")
+        plt.xlabel("Environment Steps")
+        plt.ylabel("Q Value")
+        plt.legend()
+
+        buf = BytesIO()
+        plt.savefig(buf, format='png')
+        buf.seek(0)
+
+        with open("q_value.png", "wb") as f:
+            f.write(buf.getvalue())
+
+        plt.close()
+
+        plt.figure(figsize=(12, 6))
+        plt.title('Environment Steps: %s. - Average Q Value of staring state: %s' % (episode_number, average_q_values[-1]))
+        plt.plot(average_q_values, label=f"Average Q values")
+        plt.xlabel("Environment Steps")
+        plt.ylabel("Average Q Value")
+        plt.legend()
+
+        buf = BytesIO()
+        plt.savefig(buf, format='png')
+        buf.seek(0)
+
+        with open("average_q_value.png", "wb") as f:
+            f.write(buf.getvalue())
+
+        plt.close()
+
+    def add_moving_average(self, input_array, key):
         """
         Calculates the moving average of rewards array
 
-        :param rewards: array of all rewards over the course of trainig, even though technically the last
+        :param input_array: array of values over the course of trainig, even though technically the last
                         "visualization_moving_average_window"-elements are enough
+        :param key: key of the dictionary to calculate moving average of
         """
-        if len(rewards) < self.visualization_moving_average_window:
-            self.visualization["dqn_total_rewards_moving_average"].append(np.mean(rewards))
+        if len(input_array) < self.visualization_moving_average_window:
+            self.visualization[key].append(np.mean(input_array))
             return
 
-        window = rewards[-self.visualization_moving_average_window:]
-        self.visualization["dqn_total_rewards_moving_average"].append(np.mean(window))
+        window = input_array[-self.visualization_moving_average_window:]
+        self.visualization[key].append(np.mean(window))
 
     def reset_visualization(self):
         """
@@ -193,7 +242,10 @@ class QLearningAgent(LearningAgent):
         self.visualization = {
             "dqn_total_rewards": [],
             "dqn_total_rewards_moving_average": [],
+            "dqn_total_q_values_start_state": [],
+            "dqn_total_q_values_start_state_average": [],
+            "dqn_total_q_values_start_state_moving_average": [],
             "dqn_episode_reward": 0,
             "dqn_episode_steps": 0,
-            "dqn_episode_number": 0
+            "dqn_episode_number": 0,
         }

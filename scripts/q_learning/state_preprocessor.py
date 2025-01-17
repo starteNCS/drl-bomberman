@@ -19,6 +19,9 @@ class Position:
     def __str__(self):
         return f'({self.x}, {self.y})'
 
+    def manhattan(self, other):
+        return abs(self.x - other.x) + abs(self.y - other.y)
+
 
 class StatePreprocessor:
 
@@ -60,9 +63,7 @@ class StatePreprocessor:
 
         input_tensor = torch.zeros(StatePreprocessor.V2_SIZE, dtype=torch.float)
 
-        self_pos_matrix = np.array(state["self_pos"])
-        row, col = np.where(self_pos_matrix == 1)
-        player_pos = Position(row[0], col[0])
+        player_pos = StatePreprocessor.self_position(state)
 
         input_tensor[0] = 1 if state["bombs"][player_pos.x][player_pos.y] != 0 else 0
 
@@ -304,3 +305,9 @@ class StatePreprocessor:
         tensor_counter = tensor_counter + 1
 
         return tensor, tensor_counter
+
+    @staticmethod
+    def self_position(state):
+        self_pos_matrix = np.array(state["self_pos"])
+        row, col = np.where(self_pos_matrix == 1)
+        return Position(row[0], col[0])
