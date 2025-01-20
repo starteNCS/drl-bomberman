@@ -11,11 +11,11 @@ This directory contains an deep reinforcement learning agent for the bomberman g
     averaged over the last 50 episodes for a cleaner curve.
     
   - Q Value:
-    ![q_value](versions/0_only_dqn/q_value.png)
+    ![q_value](scripts/q_learning/versions/0_only_dqn/q_value.png)
     There is _some_ convergence to see in the q value, but it is volatile moving up and down quite a lot.
     
   - Reward:
-    ![reward](versions/0_only_dqn/reward.png)
+    ![reward](scripts/q_learning/versions/0_only_dqn/reward.png)
     The reward is quite stable, starting at -100, moving up to -50.
   
 - **Epsilon decay**
@@ -24,11 +24,11 @@ This directory contains an deep reinforcement learning agent for the bomberman g
     With epsilon decay, this epsilon value will decrease over time. Therefore the agent will explore a lot in the
     beginning (by choosing random actions) and later depend more on the trained behaviour
   - Q Value:
-    ![q_value](versions/1_epsilon_decay/q_value.png)
+    ![q_value](scripts/q_learning/versions/1_epsilon_decay/q_value.png)
     There is a clear convergence after around 5000 episodes.
     
   - Reward:
-    ![reward](versions/1_epsilon_decay/reward.png)
+    ![reward](scripts/q_learning/versions/1_epsilon_decay/reward.png)
     The reward is quite stable, starting at -100, moving up to -50, just like the plain deep q network, but with less
     jigger in it.
   
@@ -39,11 +39,11 @@ This directory contains an deep reinforcement learning agent for the bomberman g
     Using this approach the experience gained from the environment becomes less correlated between states.
   
     - Q Value:
-      ![q_value](versions/2_replay_buffers/q_value.png)
+      ![q_value](scripts/q_learning/versions/2_replay_buffers/q_value.png)
       There is a clear convergence after 2000 episodes.
 
     - Reward:
-      ![reward](versions/2_replay_buffers/reward.png)
+      ![reward](scripts/q_learning/versions/2_replay_buffers/reward.png)
       The reward is stable at -40 for the first 2500 episodes. After that it starts to rise, but then flucuates between 0
       and 80.
     
@@ -54,11 +54,11 @@ This directory contains an deep reinforcement learning agent for the bomberman g
     network is used for a longer period of time, instead of updating it every time.
 
   - Q Value:
-    ![q_value](versions/3_double_q_learning/q_value.png)
+    ![q_value](scripts/q_learning/versions/3_double_q_learning/q_value.png)
     There is a clear convergence after 3000 episodes.
 
   - Reward:
-    ![reward](versions/3_double_q_learning/reward.png)
+    ![reward](scripts/q_learning/versions/3_double_q_learning/reward.png)
     The reward is stable at -40 for the first 2500 episodes. After that it starts to rise, but then flucuates between 0
     and 80.
   
@@ -68,11 +68,11 @@ This directory contains an deep reinforcement learning agent for the bomberman g
     behaviour.
 
   - Q Value:
-    ![q_value](versions/4_include_distance_from_middle/q_value.png)
+    ![q_value](scripts/q_learning/versions/4_include_distance_from_middle/q_value.png)
     With no surprise, this change from the other double q learning approach did not change anything at the convergence.
     
   - Reward:
-    ![reward](versions/4_include_distance_from_middle/reward.png)
+    ![reward](scripts/q_learning/versions/4_include_distance_from_middle/reward.png)
     In contrast to the q value, the reward did indeed change. It rose from around 30 to above 80.
 
 ## How to
