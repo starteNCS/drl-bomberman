@@ -88,6 +88,10 @@ If you want to change the agent, replace the `q_learning/agent.pt` file with any
 ### train
 Move this folder to `scripts/q_learning` and adjust line 68 of `main.py` to `agent = QLearningAgent()`.
 Then run the program using `python3 main.py --train`.
+
+#### training costs
+
+The latest version ran for 10000 episodes in around 5 hours on a MacBook with M2 Pro chip.
     
 
 ## File structure
