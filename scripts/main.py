@@ -2,12 +2,10 @@ import time
 import gymnasium
 from gymnasium.wrappers import RecordVideo
 
-from bomberman_rl import ScoreRewardWrapper, RestrictedKeysWrapper, FlattenWrapper, TimePenaltyRewardWrapper
+from bomberman_rl import ScoreRewardWrapper, TimePenaltyRewardWrapper
 
 from argparsing import parse
-from rule_based_agent.agent import Agent
 from q_learning.agent import QLearningAgent
-from learning_agent.agent import LearningAgent
 
 
 class DummyAgent:

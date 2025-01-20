@@ -1,16 +1,11 @@
 import copy
 
-import numpy as np
 import torch
-from torch import nn
 
-from scripts.q_learning.deep_q_network import DQN
-from scripts.q_learning.features import REPLAY_BUFFER_ENABLED, DOUBLE_DQN_ENABLED
-from scripts.q_learning.replay_buffer import ReplayBuffer, Replay
-from scripts.q_learning.state_preprocessor import StatePreprocessor
-
-
-# from scripts.q_learning.state_preprocessor import StatePreprocessor
+from q_learning.deep_q_network import DQN
+from q_learning.features import REPLAY_BUFFER_ENABLED, DOUBLE_DQN_ENABLED
+from q_learning.replay_buffer import ReplayBuffer, Replay
+from q_learning.state_preprocessor import StatePreprocessor
 
 
 class Trainer:

@@ -7,9 +7,9 @@ import random
 import torch
 import torch.nn as nn
 
-from scripts.q_learning.features import EPSILON_DECAY_ENABLED
-from scripts.q_learning.replay_buffer import ReplayBuffer
-from scripts.q_learning.state_preprocessor import StatePreprocessor
+from q_learning.features import EPSILON_DECAY_ENABLED
+from q_learning.replay_buffer import ReplayBuffer
+from q_learning.state_preprocessor import StatePreprocessor
 
 
 class DQN(nn.Module):

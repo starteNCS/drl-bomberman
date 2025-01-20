@@ -2,7 +2,7 @@ import unittest
 
 import torch
 
-from scripts.q_learning.state_preprocessor import StatePreprocessor
+from q_learning.state_preprocessor import StatePreprocessor
 
 
 class StatePreprocessorTest(unittest.TestCase):

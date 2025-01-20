@@ -6,11 +6,11 @@ import matplotlib.pyplot as plt
 
 from io import BytesIO
 
-from scripts.q_learning.deep_q_network import DQN
-from scripts.q_learning.features import INCLUDE_DISTANCE_FROM_MIDDLE_IN_REWARD
-from scripts.q_learning.replay_buffer import ReplayBuffer
-from scripts.q_learning.state_preprocessor import Position, StatePreprocessor
-from scripts.q_learning.trainer import Trainer
+from q_learning.deep_q_network import DQN
+from q_learning.features import INCLUDE_DISTANCE_FROM_MIDDLE_IN_REWARD
+from q_learning.replay_buffer import ReplayBuffer
+from q_learning.state_preprocessor import Position, StatePreprocessor
+from q_learning.trainer import Trainer
 
 
 class QLearningAgent(LearningAgent):
