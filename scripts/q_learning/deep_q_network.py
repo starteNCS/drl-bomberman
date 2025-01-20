@@ -1,4 +1,5 @@
 import math
+import os
 
 from bomberman_rl.envs.actions import ActionSpace, Actions
 import random
@@ -14,15 +15,16 @@ from scripts.q_learning.state_preprocessor import StatePreprocessor
 class DQN(nn.Module):
 
     INPUT_SIZE = StatePreprocessor.V2_SIZE
-    FILE_PATH = "/Users/philipp/Development/Master/DRL/bomberman_rl/trained_networks/next"
+    FILE_PATH = os.path.dirname(os.path.abspath(__file__))
 
-    def __init__(self, gamma, learning_rate):
+    def __init__(self, gamma, learning_rate, training):
         super(DQN, self).__init__()
 
         self.gamma = gamma
         self.learning_rate = learning_rate
 
         self.device = self.choose_device()
+        self.training = training
         print("Using device: {}".format(self.device))
 
         self.layers = nn.Sequential(
@@ -62,7 +64,7 @@ class DQN(nn.Module):
 
         self.steps = self.steps + 1
         epsilon = self.eps_end + (self.eps_start - self.eps_end) * math.exp(-1. * self.steps / self.eps_decay)
-        if (EPSILON_DECAY_ENABLED and random.random() < epsilon) or (not EPSILON_DECAY_ENABLED and random.random() < 0.1):
+        if self.training and (EPSILON_DECAY_ENABLED and random.random() < epsilon) or (not EPSILON_DECAY_ENABLED and random.random() < 0.1):
             action = ActionSpace.sample()
         else:
             state_tensor = StatePreprocessor.process_v2(state).to(self.device)

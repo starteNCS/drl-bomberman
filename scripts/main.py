@@ -87,6 +87,8 @@ def main(argv=None):
         raise AssertionError("Either provide an agent or run in passive mode by providing the command line argument --passive")
     if args.train:
         agent.setup_training()
+    else:
+        agent.setup()
 
     loop(env, agent, args)
 

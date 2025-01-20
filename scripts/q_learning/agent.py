@@ -29,7 +29,8 @@ class QLearningAgent(LearningAgent):
         self.trainer: Trainer = None
 
     def setup(self):
-        pass
+        self.q_net = DQN(None, None, training=False)
+        self.q_net.load_network("agent")
 
     def act(self, state, **kwargs):
         """
@@ -43,7 +44,7 @@ class QLearningAgent(LearningAgent):
         """
         self.gamma: float = 0.99
         self.learning_rate: float = 0.001
-        self.q_net = DQN(self.gamma, self.learning_rate)
+        self.q_net = DQN(self.gamma, self.learning_rate, training=True)
         self.q_net.train()
 
         self.replay_buffer = ReplayBuffer(10_000)

@@ -1,7 +1,7 @@
 # DQN Agent
 
 This directory contains an deep reinforcement learning agent for the bomberman game. The agent makes use of:
-- Deep q networks
+- **Deep q networks**
   - Normal Q Learning utilizes a state-action value table. For smaller state spaces, that works fine. But since this
     environment has a large state space, a table with an entry for each state would contain a huge amount of data.
     Therefore, we approximate this value by a neural network that learns the values and outputs those on demand, instead
@@ -11,50 +11,84 @@ This directory contains an deep reinforcement learning agent for the bomberman g
     averaged over the last 50 episodes for a cleaner curve.
     
   - Q Value:
-    ![reward](../../plots/0_only_dqn/q_value.png)
+    ![q_value](versions/0_only_dqn/q_value.png)
     There is _some_ convergence to see in the q value, but it is volatile moving up and down quite a lot.
     
   - Reward:
-    ![q_value](../../plots/0_only_dqn/reward.png)
+    ![reward](versions/0_only_dqn/reward.png)
     The reward is quite stable, starting at -100, moving up to -50.
   
-- Epsilon decay
+- **Epsilon decay**
   - The epsilon greedy was already used in the base deep q network. Using epsilon greedy, the agent will choose a random
     action of the action space, when a random value is below the epsilon-value.
     With epsilon decay, this epsilon value will decrease over time. Therefore the agent will explore a lot in the
     beginning (by choosing random actions) and later depend more on the trained behaviour
   - Q Value:
-    ![reward](../../plots/1_epsilon_greedy/q_value.png)
-    There is _some_ convergence to see in the q value, but it is volatile moving up and down quite a lot.
+    ![q_value](versions/1_epsilon_decay/q_value.png)
+    There is a clear convergence after around 5000 episodes.
     
   - Reward:
-    ![q_value](../../plots/1_epsilon_greedy/reward.png)
-    The reward is quite stable, starting at -100, moving up to -50.
+    ![reward](versions/1_epsilon_decay/reward.png)
+    The reward is quite stable, starting at -100, moving up to -50, just like the plain deep q network, but with less
+    jigger in it.
   
-- Replay Buffers
+- **Replay Buffers**
   - With replay buffers, the agent saves a tupel of the old state (S_t-1), the action taken in this state (a_t-1), 
     the reward it gained for choosing action A_t-1 in S_t-1 (R_t-1) and the resulting state (S_t).
     Then in every step the algorithm chooses n random (S_t-1, A_t-1, R_t-1, S_t) tupel and trains itself on those.
     Using this approach the experience gained from the environment becomes less correlated between states.
-- Double Q Learning
+  
+    - Q Value:
+      ![q_value](versions/2_replay_buffers/q_value.png)
+      There is a clear convergence after 2000 episodes.
+
+    - Reward:
+      ![reward](versions/2_replay_buffers/reward.png)
+      The reward is stable at -40 for the first 2500 episodes. After that it starts to rise, but then flucuates between 0
+      and 80.
+    
+- **Double Q Learning**
   - As the name suggests, double q learning trains two separate networks. A policy network and a target network. Every n
     steps, the policy network is synced into the target network. The policy network is used to choose the next action,
     while the target network is used to evaluate the chosen action. This reduces over estimation, since the target
     network is used for a longer period of time, instead of updating it every time.
 
   - Q Value:
-    ![reward](../../plots/3_double_q_learning/q_value.png)
+    ![q_value](versions/3_double_q_learning/q_value.png)
     There is a clear convergence after 3000 episodes.
 
   - Reward:
-    ![q_value](../../plots/3_double_q_learning/reward.png)
+    ![reward](versions/3_double_q_learning/reward.png)
     The reward is stable at -40 for the first 2500 episodes. After that it starts to rise, but then flucuates between 0
     and 80.
   
-- First Reward Structure adjustment
+- **First Reward Structure adjustment**
   - Punishing the agent for moving far away from the middle. When watching the agent play, we noticed that the agent
     just moves around the border and wont explore more of the map. With this punishment we hoped to reduce that 
-    behaviour
+    behaviour.
+
+  - Q Value:
+    ![q_value](versions/4_include_distance_from_middle/q_value.png)
+    With no surprise, this change from the other double q learning approach did not change anything at the convergence.
+    
+  - Reward:
+    ![reward](versions/4_include_distance_from_middle/reward.png)
+    In contrast to the q value, the reward did indeed change. It rose from around 30 to above 80.
+
+## How to
+
+### run
+You can choose between using our recommended agent, or every other version from the `q_learning/versions` folder.
+The recommended agent is just a copy of the latest episode of the latest version, that being episode 10000 from
+including distance to the middle to reward.
+
+To use the recommended agent, just run the program using `python3 main.py`.
+If you want to change the agent, replace the `q_learning/agent.pt` file with any other version.
+
+### train
+Move this folder to `scripts/q_learning` and adjust line 68 of `main.py` to `agent = QLearningAgent()`.
+Then run the program using `python3 main.py --train`.
+    
 
 ## File structure
 
