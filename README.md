@@ -1,140 +1,155 @@
-# Bomberman Reinforcement Learning
+# DQN Agent
 
-**Disclaimer: This code is still under development and subject to change.**
+This directory contains an deep reinforcement learning agent for the bomberman game. The agent makes use of:
+- **Deep q networks**
+  - Normal Q Learning utilizes a state-action value table. For smaller state spaces, that works fine. But since this
+    environment has a large state space, a table with an entry for each state would contain a huge amount of data.
+    Therefore, we approximate this value by a neural network that learns the values and outputs those on demand, instead
+    of saving it in a lookup table.
+    
+    As with every state, we append two plots per advancement: The Q-Value of the starting state and the reward. Both are
+    averaged over the last 50 episodes for a cleaner curve.
+    
+  - Q Value:
+    ![q_value](versions/0_only_dqn/q_value.png)
+    There is _some_ convergence to see in the q value, but it is volatile moving up and down quite a lot.
+    
+  - Reward:
+    ![reward](versions/0_only_dqn/reward.png)
+    The reward is quite stable, starting at -100, moving up to -50.
+  
+- **Epsilon decay**
+  - The epsilon greedy was already used in the base deep q network. Using epsilon greedy, the agent will choose a random
+    action of the action space, when a random value is below the epsilon-value.
+    With epsilon decay, this epsilon value will decrease over time. Therefore the agent will explore a lot in the
+    beginning (by choosing random actions) and later depend more on the trained behaviour
+  - Q Value:
+    ![q_value](versions/1_epsilon_decay/q_value.png)
+    There is a clear convergence after around 5000 episodes.
+    
+  - Reward:
+    ![reward](versions/1_epsilon_decay/reward.png)
+    The reward is quite stable, starting at -100, moving up to -50, just like the plain deep q network, but with less
+    jigger in it.
+  
+- **Replay Buffers**
+  - With replay buffers, the agent saves a tupel of the old state (S_t-1), the action taken in this state (a_t-1), 
+    the reward it gained for choosing action A_t-1 in S_t-1 (R_t-1) and the resulting state (S_t).
+    Then in every step the algorithm chooses n random (S_t-1, A_t-1, R_t-1, S_t) tupel and trains itself on those.
+    Using this approach the experience gained from the environment becomes less correlated between states.
+  
+    - Q Value:
+      ![q_value](versions/2_replay_buffers/q_value.png)
+      There is a clear convergence after 2000 episodes.
 
-<img src="./docs/resources/icon.png" alt="Bomberman" width="250"/>
+    - Reward:
+      ![reward](versions/2_replay_buffers/reward.png)
+      The reward is stable at -40 for the first 2500 episodes. After that it starts to rise, but then flucuates between 0
+      and 80.
+    
+- **Double Q Learning**
+  - As the name suggests, double q learning trains two separate networks. A policy network and a target network. Every n
+    steps, the policy network is synced into the target network. The policy network is used to choose the next action,
+    while the target network is used to evaluate the chosen action. This reduces over estimation, since the target
+    network is used for a longer period of time, instead of updating it every time.
 
-## Acknowledgements
+  - Q Value:
+    ![q_value](versions/3_double_q_learning/q_value.png)
+    There is a clear convergence after 3000 episodes.
 
-This project was [originally developed](https://github.com/ukoethe/bomberman_rl) at the chair of Prof. Dr. Koethe at the university of Heidelberg.
+  - Reward:
+    ![reward](versions/3_double_q_learning/reward.png)
+    The reward is stable at -40 for the first 2500 episodes. After that it starts to rise, but then flucuates between 0
+    and 80.
+  
+- **First Reward Structure adjustment**
+  - Punishing the agent for moving far away from the middle. When watching the agent play, we noticed that the agent
+    just moves around the border and wont explore more of the map. With this punishment we hoped to reduce that 
+    behaviour.
 
-## Description
+  - Q Value:
+    ![q_value](versions/4_include_distance_from_middle/q_value.png)
+    With no surprise, this change from the other double q learning approach did not change anything at the convergence.
+    
+  - Reward:
+    ![reward](versions/4_include_distance_from_middle/reward.png)
+    In contrast to the q value, the reward did indeed change. It rose from around 30 to above 80.
 
-Student project to train and compete Reinforcement Learning Agents in a Bomberman Environemnt.
+## How to
 
-## Getting Started
+### run
+You can choose between using our recommended agent, or every other version from the `q_learning/versions` folder.
+The recommended agent is just a copy of the latest episode of the latest version, that being episode 10000 from
+including distance to the middle to reward.
 
-### Prerequisites
+To use the recommended agent, just run the program using `python3 main.py`.
+If you want to change the agent, replace the `q_learning/agent.pt` file with any other version.
 
-- Ideally conda
+### train
+Move this folder to `scripts/q_learning` and adjust line 68 of `main.py` to `agent = QLearningAgent()`.
+Then run the program using `python3 main.py --train`.
+    
 
-### Installation
+## File structure
 
-1. Clone the repository:
-   ```bash
-   git clone https://zivgitlab.uni-muenster.de/ai-systems/bomberman_rl.git
-   cd bomberman_rl
-   ```
+In the next few paragraphs, the files and their contents are being explained.
 
-2. Create conda env:
-   ```bash
-   conda env create --name <name>
-   conda activate <name>
-   ```
-   This will implicitly install this package as dependency in editable mode.
+The code for the agent is split among a few files for a better separation of concerns:
+- agent.py 
+- deep_q_network.py
+- replay_buffer.py
+- state_preprocessor.py
+- trainer.py
 
-3. Alternative:
-   ```bash
-   pip install -e .
-   ```
-   Manually install further requirements.
+Additionally, there are another two files, that are indirectly being used:
+- features.py
+- test.py
 
-### Run
-- Watch arbitrary agents play
-   ```bash
-   python scripts/main.py --players rule_based_agent rule_based_agent
-   ```
-- Play yourself (movement: `Up`, `Down`, `Left`, `Right`; bomb: `Space`, wait: `Enter`)
-   ```bash
-   python scripts/main.py --players rule_based_agent rule_based_agent --user-play
-   ```
-- Further
-    ```bash
-   python scripts/main.py -h
-   ```
+### agent.py
 
-## Versioning and Tags
-Each version is identified by a tag in the format:
-v*Major.Minor.Patch* with
-- *Major*: Exercise Sheet number
-- *Minor*: Feature additions
-- *Patch*: Bug Fixes
+This file contains the `QLearningAgent` class, which inherits from the `Agent` class. Therefore, this is the interface
+with which the game itself communicates.
 
-See the [Changelog](./CHANGELOG.md) for which changes the tags refer to
+This class also holds the deep q network itself
 
-### Check out a specific version
-```bash
-$ git checkout <tag>
-```
+### deep_q_network.py
 
-## Develop
-This package provides
-- `src/`: bomberman *Environment* as Gymnasium environment
-- `scripts/`: example *Agent* acting on the environment
+This file contains the implementation of the deep q network. The class `DQN` inherits from `nn.Module` and has two
+important methods:
 
-### Environment
-- Action space:
-```python
-class Actions(Enum):
-    UP = 0
-    RIGHT = 1
-    DOWN = 2
-    LEFT = 3
-    WAIT = 4
-    BOMB = 5
-```
-- Observation space:
-```python
-{
-    'round': int,
-    'step': int,
-    'walls': np.array((17, 17), dtype=int16),
-    'crates': np.array((17, 17), dtype=int16),
-    'coins': np.array((17, 17), dtype=int16),
-    'bombs': np.array((17, 17), dtype=int16),
-    'explosions': np.array((17, 17), dtype=int16),
-    'self_pos': np.array((17, 17), dtype=int16),
-    'opponents_pos': np.array((17, 17), dtype=int16),
-    'self_info': {
-        'score': int,
-        'bombs_left': int,
-        'position': np.array((17, 17), dtype=int16)
-    }
-    'opponents_info': ({...}, {...}, {...})
-}
-```
+- get_action: this method returns an action, that the network thinks would work best for the given state
+- forward: this method forwards an input tensor to the layers
 
-### Agent
-- We are talking **Rule Based** for now
-    - you might stumble upon learning related code, though
-- You can adapt agent and action loop, but you might wanna **stick to the interface**
-    - this allows for later competition
-    - see the `RuleBasedAgent` in `scripts/agent.py`
-    - see the example implementation of a random agent in `scripts/random_agent/agent.py`
+The layers of the network are defined in the `__init__` method. Right now it consists of the input and output layer
+as well as two hidden layers.
 
-```python
-class RandomAgent:
-    def __init__(self):
-        self.setup()
+### replay_buffer.py
 
-    def setup(self):
-        self.rng = np.random.default_rng()
+This class is a wrapper arround the python `deque`, which is a "double sided queue".
+The wrapper just has two methods for appending and sampling.
 
-    def act(self, state: dict, **kwargs) -> int:
-        action = Actions.BOMB.value
-        while action == Actions.BOMB.value:
-            action = np.argmax(self.rng.random(len(Actions)))
-        return action
-```
+### state_preprocessor.py
 
-## Troubleshooting
-The following  arm64 Macs, the given conda environment does not work.
-```bash
-conda create --name <name> python=3.11.10
-conda activate <name>
-pip install configargparse
-pip install gymnasium
-pip install pygame
-PYTHONPATH=src python scripts/main.py
-```
-Manual installation of further packages.
+Since you cannot just input the state dictionary of this environment to the neural network, we need to preprocess the
+state. This is done here. There are multiple versions, but as of now v2 is used.
+
+### trainer.py
+
+This file contains the training of the neural network. It has three methods:
+
+- `optimize_single`: Does a single optimization step using the bellman function
+- `optimize_replay`: Does mulitple optimization steps using the replay buffer
+- `optimize`: The interface for the "outside" of trainer class. This method appends to the replay buffer and decides wether to use `optimize_single` or `optimize_replay
+
+### features.py
+
+To better evaluate the changes to the neural network, features.py contains three feature toggles, where features
+(Epsilon decay, Replay Buffers, Double Q Learning) can be toggled on and off.
+
+## Packages and versions
+
+### Numpy - version 2.2.0
+We are using numpy for easy access to simple mathematical functions like calculating the mean of an array.
+ 
+### Pytorch - version 2.5.1
+Using pytorch for all functions that were using for modelling the neural network.
