@@ -17,6 +17,7 @@ class QLearningAgent(LearningAgent):
 
     def __init__(self):
         super().__init__()
+        self.training = None
         self.visualization: {} = None
         self.visualization_moving_average_window = 50
 
@@ -31,6 +32,7 @@ class QLearningAgent(LearningAgent):
     def setup(self):
         self.q_net = DQN(None, None, training=False)
         self.q_net.load_network("agent")
+        self.training = False
 
     def act(self, state, **kwargs):
         """
@@ -49,6 +51,8 @@ class QLearningAgent(LearningAgent):
 
         self.replay_buffer = ReplayBuffer(10_000)
 
+        self.training = True
+
         self.reset_visualization()
 
     def game_events_occurred(self, old_state, self_action, new_state, events):
@@ -64,6 +68,9 @@ class QLearningAgent(LearningAgent):
         :param new_state: The new state
         :param events: The events that occured during this step
         """
+        if not self.training:
+            return
+
         if new_state is None:
             new_state = old_state
 
@@ -94,6 +101,9 @@ class QLearningAgent(LearningAgent):
 
         Here we only do some housekeeping for visualization purposes, but do nothing in regard of the network
         """
+        if not self.training:
+            return
+
         self.visualization["dqn_episode_number"] = self.visualization["dqn_episode_number"] + 1
         current_episode = self.visualization["dqn_episode_number"]
 

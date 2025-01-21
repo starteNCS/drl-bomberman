@@ -1,4 +1,5 @@
 # DQN Agent
+From Philipp Honsel, Alexander Hülsmann, Jonathan Wrede
 
 This directory contains an deep reinforcement learning agent for the bomberman game. The agent makes use of:
 - **Deep q networks**
@@ -22,7 +23,10 @@ This directory contains an deep reinforcement learning agent for the bomberman g
   - The epsilon greedy was already used in the base deep q network. Using epsilon greedy, the agent will choose a random
     action of the action space, when a random value is below the epsilon-value.
     With epsilon decay, this epsilon value will decrease over time. Therefore the agent will explore a lot in the
-    beginning (by choosing random actions) and later depend more on the trained behaviour
+    beginning (by choosing random actions) and later depend more on the trained behaviour.
+
+    The code used to implement this epsilon decay is inspired by the code provided as an example in learning agent.
+  
   - Q Value:
     ![q_value](scripts/q_learning/versions/1_epsilon_decay/q_value.png)
     There is a clear convergence after around 5000 episodes.
@@ -38,14 +42,16 @@ This directory contains an deep reinforcement learning agent for the bomberman g
     Then in every step the algorithm chooses n random (S_t-1, A_t-1, R_t-1, S_t) tupel and trains itself on those.
     Using this approach the experience gained from the environment becomes less correlated between states.
   
-    - Q Value:
-      ![q_value](scripts/q_learning/versions/2_replay_buffers/q_value.png)
-      There is a clear convergence after 2000 episodes.
+    The code used to implement the replay buffer is inspired by the code provided as an example in learning agent.
+  
+  - Q Value:
+    ![q_value](scripts/q_learning/versions/2_replay_buffers/q_value.png)
+    There is a clear convergence after 2000 episodes.
 
-    - Reward:
-      ![reward](scripts/q_learning/versions/2_replay_buffers/reward.png)
-      The reward is stable at -40 for the first 2500 episodes. After that it starts to rise, but then flucuates between 0
-      and 80.
+  - Reward:
+    ![reward](scripts/q_learning/versions/2_replay_buffers/reward.png)
+    The reward is quite stable for the first 2000 episodes. After that it starts to rise, but then flucuates between 0
+    and 80.
     
 - **Double Q Learning**
   - As the name suggests, double q learning trains two separate networks. A policy network and a target network. Every n
@@ -61,6 +67,9 @@ This directory contains an deep reinforcement learning agent for the bomberman g
     ![reward](scripts/q_learning/versions/3_double_q_learning/reward.png)
     The reward is stable at -40 for the first 2500 episodes. After that it starts to rise, but then flucuates between 0
     and 80.
+    On the first look this looks like a worse result than using just the replay buffers, but taking a closer look, the
+    average in the end drops a lot (just like in a few occurrences before). So there is no definite way to tell if there
+    is a real change from only replay buffers.
   
 - **First Reward Structure adjustment**
   - Punishing the agent for moving far away from the middle. When watching the agent play, we noticed that the agent
