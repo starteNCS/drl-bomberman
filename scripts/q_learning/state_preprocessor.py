@@ -6,6 +6,60 @@ import numpy as np
 
 import torch
 from torch import Tensor
+from bomberman_rl import Actions
+
+def get_rule_based_action(features):
+    action_enums = [Actions.UP, Actions.DOWN, Actions.LEFT, Actions.RIGHT, Actions.WAIT, Actions.BOMB]
+
+    rulebased = np.zeros((6, 34), dtype=int)
+    rulebased[0][0] = 100
+    rulebased[1][0] = 100
+    rulebased[2][0] = 100
+    rulebased[3][0] = 100
+    rulebased[4][0] = -100
+    rulebased[5][0] = -100
+
+    # Coins: Encourage moving toward coins
+    rulebased[0][3] = 50  # Move up toward coins
+    rulebased[1][10] = 50  # Move down toward coins
+    rulebased[2][17] = 50  # Move left toward coins
+    rulebased[3][24] = 50  # Move right toward coins
+
+    # Crates: Encourage moving toward crates
+    rulebased[0][2] = 90  # Move up toward crates
+    rulebased[5][2] = 25  # bomb crates
+    rulebased[1][9] = 90  # Move down toward crates
+    rulebased[5][9] = 25  # bomb crates
+    rulebased[2][16] = 90  # Move left toward crates
+    rulebased[5][16] = 25  # bomb crates
+    rulebased[3][23] = 90  # Move right toward crates
+    rulebased[5][23] = 25  # bomb crates
+
+    # Bombs: Avoid bombs
+    rulebased[0][4] = -100  # Avoid bombs up
+    rulebased[1][11] = -100  # Avoid bombs down
+    rulebased[2][18] = -100  # Avoid bombs left
+    rulebased[3][25] = -100  # Avoid bombs right
+
+    # Walls: Avoid walls
+    rulebased[0][1] = -500  # Avoid walls up
+    rulebased[1][8] = -500  # Avoid walls down
+    rulebased[2][15] = -500  # Avoid walls left
+    rulebased[3][22] = -500  # Avoid walls right
+
+    # Exploding bombs: Avoid exploding bombs
+    rulebased[0][5] = -1000  # Avoid exploding bombs up
+    rulebased[1][12] = -1000  # Avoid exploding bombs down
+    rulebased[2][19] = -1000  # Avoid exploding bombs left
+    rulebased[3][26] = -1000  # Avoid exploding bombs right
+
+    # Other global features
+    rulebased[:, 30] = 10  # Encourage actions if bombs are available
+    rulebased[:, 31] = 1   # Reward high scores
+    rulebased[:, 32] = -5  # Penalize visible bombs
+
+    Q = np.dot(rulebased, features)
+    return action_enums[np.argmax(Q)].value
 
 
 class Position:

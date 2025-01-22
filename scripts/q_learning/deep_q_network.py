@@ -7,9 +7,9 @@ import random
 import torch
 import torch.nn as nn
 
-from q_learning.features import EPSILON_DECAY_ENABLED
+from q_learning.features import EPSILON_DECAY_ENABLED, COMPLEX_TRAINER, SIMPLE_TRAINER
 from q_learning.replay_buffer import ReplayBuffer
-from q_learning.state_preprocessor import StatePreprocessor
+from q_learning.state_preprocessor import StatePreprocessor, get_rule_based_action
 
 
 class DQN(nn.Module):
@@ -54,7 +54,7 @@ class DQN(nn.Module):
         """
         return self.layers(in_tensor)
 
-    def get_action(self, state):
+    def get_action(self, state, trainer):
         """
         Select an action using a greedy policy, sometimes.
         :param state: Current state (dict, observation space).
@@ -64,9 +64,21 @@ class DQN(nn.Module):
 
         self.steps = self.steps + 1
         epsilon = self.eps_end + (self.eps_start - self.eps_end) * math.exp(-1. * self.steps / self.eps_decay)
+        trainer_action = trainer.act(state)
         if self.training and (EPSILON_DECAY_ENABLED and random.random() < epsilon) or (not EPSILON_DECAY_ENABLED and random.random() < 0.1):
-            action = ActionSpace.sample()
+            if random.random() < 0.1:
+                print("Random action")
+                action = ActionSpace.sample()
+            else:
+                print("Trainer action")
+                if trainer_action is not None and COMPLEX_TRAINER:
+                    action = trainer_action
+                elif SIMPLE_TRAINER:
+                    action = get_rule_based_action(StatePreprocessor.process_v2(state))
+                else:
+                    action = Actions.WAIT.value
         else:
+            print("DQN action")
             state_tensor = StatePreprocessor.process_v2(state).to(self.device)
             state_tensor = state_tensor.unsqueeze(0)
 

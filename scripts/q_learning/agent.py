@@ -11,6 +11,7 @@ from q_learning.features import INCLUDE_DISTANCE_FROM_MIDDLE_IN_REWARD
 from q_learning.replay_buffer import ReplayBuffer
 from q_learning.state_preprocessor import Position, StatePreprocessor
 from q_learning.trainer import Trainer
+from bomberman_rl.envs.agent_code import RuleBasedAgent
 
 
 class QLearningAgent(LearningAgent):
@@ -29,6 +30,9 @@ class QLearningAgent(LearningAgent):
         self.replay_buffer: ReplayBuffer = None
         self.trainer: Trainer = None
 
+        self.teacher = RuleBasedAgent()
+        self.teacher.setup()
+
     def setup(self):
         self.q_net = DQN(None, None, training=False)
         self.q_net.load_network("agent")
@@ -38,7 +42,7 @@ class QLearningAgent(LearningAgent):
         """
         Agent acts on the given state
         """
-        return self.q_net.get_action(state)
+        return self.q_net.get_action(state, self.teacher)
 
     def setup_training(self):
         """
@@ -117,7 +121,7 @@ class QLearningAgent(LearningAgent):
         self.plot_dqn_learning()
 
         if current_episode % 1000 == 0:
-            self.q_net.save_network(f"episode_{self.visualization["dqn_episode_number"]}")
+            self.q_net.save_network(f"episode_{self.visualization['dqn_episode_number']}")
             print(f"Saved network to disk at episode {self.visualization['dqn_episode_number']}")
 
     @staticmethod
