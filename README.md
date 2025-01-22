@@ -84,6 +84,21 @@ This directory contains an deep reinforcement learning agent for the bomberman g
     ![reward](scripts/q_learning/versions/4_include_distance_from_middle/reward.png)
     In contrast to the q value, the reward did indeed change. It rose from around 30 to above 80.
 
+- **Imitation Learning**
+
+  - **Simple Rule-Based Agent**
+We initially guided the agent's learning process using a simple, linear, rule-based policy during the first few iterations. This approach, applied randomly throughout the learning process, had a detrimental effect on the agent's performance. As a result, we decided to switch to a more complex rule-based agent.
+
+  - **Complex Rule-Based Expert**
+Despite using a more sophisticated rule-based expert to guide the agent, we observed no significant improvement in performance or convergence speed. This outcome was unexpected, as the expert's policy was designed to provide optimal guidance.
+
+  - **Value Function**:  
+    ![Value Function](scripts/q_learning/versions/6_imitation_learning_complex/q_value.png)  
+
+  - **Reward Progression**:  
+    ![Reward Progression](scripts/q_learning/versions/6_imitation_learning_complex/reward.png)
+
+
 ## How to
 
 ### run
